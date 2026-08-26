@@ -382,7 +382,8 @@ src/
 │   └── AdminPage.tsx            # écran de saisie #/admin
 ├── config/
 │   ├── fund.ts                  # nom, cotisation, date de départ, taux €, annonce
-│   └── admin.ts                 # empreinte du mot de passe admin
+│   ├── supabase.ts              # URL et clé anon, lues dans l'environnement
+│   └── admin.ts                 # empreinte du mot de passe admin (mode local)
 ├── components/
 │   ├── ActivityCard.tsx         # « Naina a payé → +60 000 Ar (+6 mois) »
 │   │                            #   « Tiana a participé → +130 000 Ar · Ponctuel »
@@ -394,31 +395,107 @@ src/
 │   ├── MembersSidebar.tsx       # liste de gauche, triée alphabétiquement
 │   ├── MemberAvatar.tsx
 │   ├── MemberName.tsx           # titre gris minuscule + prénom et nom
-│   ├── FundGate.tsx             # phrase de la famille, avant tout affichage
+│   ├── AuthGate.tsx             # connexion par e-mail (mode Supabase)
+│   ├── FundGate.tsx             # phrase de la famille (mode local)
 │   ├── PaidMonthsCard.tsx       # mois payés du membre sélectionné
 │   ├── TopPayersCard.tsx        # classement cotisations + ponctuel
 │   ├── StatusPill.tsx
 │   └── admin/                   # AdminGate + formulaires de saisie et de correction
 ├── data/sealedFund.ts           # données de départ, chiffrées (engendré)
 ├── domain/models.ts
-├── services/                    # FinanceRepository + stockage local
+├── services/                    # FinanceRepository, stockage local, Supabase, auth
 ├── styles/                      # tokens, global, layout, sidebar, fund, admin
 └── utils/                       # calcul des mois, formatage, routage, accès, scellement
 ```
 
-## Brancher Supabase plus tard
+## Brancher Supabase
 
-Créer `src/services/supabaseFinanceRepository.ts` implémentant `FinanceRepository`
-(lecture, entrée, sortie, membre, correction, suppression, taux), puis remplacer dans
-`App.tsx` :
+Tout le code est écrit. Il ne manque que le projet Supabase et ses deux
+variables : **dès qu'elles sont définies, l'application bascule toute seule.**
 
-```ts
-const repository: FinanceRepository = new LocalFinanceRepository();
+| | Sans Supabase | Avec Supabase |
+| --- | --- | --- |
+| Données | `localStorage`, **propres à chaque appareil** | une base, **partagée par tous** |
+| Accès | phrase de la famille, secret commun | un compte par personne, lien par e-mail |
+| Droit d'écrire | mot de passe vérifié dans le navigateur | `app_users.is_admin`, vérifié par la base |
+| Point de départ | paquet scellé dans la page | les tables |
+
+Le choix se fait dans [`src/services/repository.ts`](src/services/repository.ts) au
+démarrage. Les composants ne savent pas laquelle des deux ils utilisent.
+
+### 1. Créer le projet et les tables
+
+Sur [supabase.com](https://supabase.com), créer un projet (l'offre gratuite
+suffit largement pour une caisse familiale). Puis, dans **SQL Editor**, coller et
+exécuter [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
+
+Il crée les quatre tables — `members`, `contributions`, `expenses`, `eur_rates` —,
+la table des comptes `app_users`, et les règles **RLS** :
+
+- **lecture** : toute personne connectée ;
+- **écriture** : les seuls comptes dont `is_admin` vaut `true`.
+
+Sans connexion, les tables ne répondent rien. C'est ce qui remplace la phrase de
+la famille — et cette fois la protection est côté serveur, pas dans le navigateur.
+
+### 2. Fermer les inscriptions
+
+**Authentication → Sign In / Providers → Email**, et décocher **Allow new users
+to sign up**. Sans ça, n'importe qui pourrait se créer un compte et lire la
+caisse.
+
+Les membres s'ajoutent ensuite un par un dans **Authentication → Users →
+Add user → Send invitation**.
+
+### 3. Verser les données de départ
+
+```bash
+SUPABASE_URL="https://xxxx.supabase.co" \
+SUPABASE_SERVICE_ROLE_KEY="…" \
+npm run seed:supabase
 ```
 
-par la version Supabase. Les composants n'ont pas besoin de savoir d'où viennent
-les données. C'est aussi à ce moment-là qu'on ajoutera l'authentification et les
-Row Level Security policies.
+Le script lit `data/fund.seed.json` et remplit les tables. **Une seule fois, sur
+une base neuve** : les identifiants des versements sont engendrés par la base, le
+relancer créerait des doublons.
+
+> La clé **service role** contourne les règles RLS. Elle se trouve dans
+> *Project Settings → API*, et ne doit jamais entrer dans le dépôt ni dans le
+> paquet publié.
+
+### 4. Se donner le droit d'écrire
+
+Après la première connexion, dans **SQL Editor** :
+
+```sql
+update public.app_users set is_admin = true where email = 'ton@adresse';
+```
+
+C'est la seule chose qui ouvre l'espace de saisie. Elle se donne et se retire à
+la main, table `app_users` — le responsable de la caisse n'a pas besoin d'être
+celui qui gère le dépôt.
+
+### 5. Raccorder l'application
+
+En local, copier `.env.example` en `.env.local` :
+
+```bash
+VITE_SUPABASE_URL=https://xxxx.supabase.co
+VITE_SUPABASE_ANON_KEY=eyJ…
+```
+
+Pour le site publié, les mêmes valeurs vont dans **Settings → Secrets and
+variables → Actions** du dépôt GitHub, sous les mêmes noms. Le workflow les
+passe à la compilation.
+
+La clé **anon** est publique par conception : elle se retrouve dans le paquet
+publié, et c'est normal. Ce qui protège les données, ce sont les règles RLS.
+
+### Ce que ça change pour la famille
+
+Le responsable saisit un mouvement depuis son téléphone, **tout le monde le voit
+au chargement suivant**. Le paquet scellé et la phrase de la famille ne servent
+plus à rien : les données ne voyagent plus dans la page.
 
 ## Mise en page selon l'écran
 
@@ -446,5 +523,5 @@ Le `base: './'` de `vite.config.ts` permet de servir le site sous
 
 1. Compléter la liste des membres et leurs versements déjà faits.
 2. Ajouter les photos des membres (`avatarUrl`).
-3. Brancher Supabase + authentification, pour partager les données entre
-   téléphones et protéger réellement l'espace admin.
+3. Créer le projet Supabase (le code, lui, est prêt) pour partager les données
+   entre téléphones et protéger réellement l'espace de saisie.

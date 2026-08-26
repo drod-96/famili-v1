@@ -7,7 +7,7 @@ import { BalanceCard } from '../components/BalanceCard';
 import { MembersSidebar } from '../components/MembersSidebar';
 import { PaidMonthsCard } from '../components/PaidMonthsCard';
 import { TopPayersCard } from '../components/TopPayersCard';
-import { AdminGate } from '../components/admin/AdminGate';
+import { AdminAccess } from '../components/admin/AdminAccess';
 import type {
   DisplayCurrency,
   FundSnapshot,
@@ -15,7 +15,7 @@ import type {
   NewExpense,
   NewMember,
 } from '../domain/models';
-import { repository } from '../services/repository';
+import { localRepository, repository } from '../services/repository';
 import {
   buildActivity,
   sortMembers,
@@ -124,8 +124,11 @@ export default function App() {
     [applySnapshot],
   );
 
+  /* La remise à zéro n'existe qu'en local : une base partagée ne se vide pas
+   * depuis un téléphone. */
   const resetFund = useCallback(async () => {
-    applySnapshot(await repository.reset());
+    if (!localRepository) return;
+    applySnapshot(await localRepository.reset());
     setSelectedId(null);
   }, [applySnapshot]);
 
@@ -141,7 +144,7 @@ export default function App() {
         {!snapshot && !error && <div className="status-message">Chargement…</div>}
 
         {snapshot && model && route === 'admin' && (
-          <AdminGate>
+          <AdminAccess>
             <AdminPage
               snapshot={snapshot}
               members={model.members}
@@ -155,9 +158,9 @@ export default function App() {
               onDeleteContribution={deleteContribution}
               onUpdateMember={updateMember}
               onSetEurRate={setEurRate}
-              onReset={resetFund}
+              onReset={localRepository ? resetFund : undefined}
             />
-          </AdminGate>
+          </AdminAccess>
         )}
 
         {model && activeSummary && route === 'dashboard' && (

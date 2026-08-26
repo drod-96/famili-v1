@@ -5,6 +5,7 @@ import type {
   NewExpense,
   NewMember,
 } from '../domain/models';
+import { createSlugId } from '../utils/id';
 import type { FinanceRepository } from './financeRepository';
 
 /*
@@ -161,21 +162,4 @@ function createId(prefix: string): string {
       : `${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
 
   return `${prefix}-${random}`;
-}
-
-/** Identifiant lisible dérivé d'un libellé, suffixé s'il est déjà pris. */
-function createSlugId(label: string, taken: string[], fallback: string): string {
-  const base =
-    label
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '') || fallback;
-
-  if (!taken.includes(base)) return base;
-
-  let suffix = 2;
-  while (taken.includes(`${base}-${suffix}`)) suffix += 1;
-  return `${base}-${suffix}`;
 }

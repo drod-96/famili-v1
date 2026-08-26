@@ -6,3 +6,8 @@ dist
 # Données de la caisse en clair : noms et montants réels.
 # Le dépôt est public, seul le fichier scellé (src/data/sealedFund.ts) y entre.
 data/
+
+# Raccordement à Supabase : URL et clés. `.env.example` sert de modèle.
+.env
+.env.*
+!.env.example
