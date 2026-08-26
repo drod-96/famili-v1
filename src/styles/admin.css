@@ -1,0 +1,637 @@
+/* ── Bouton d'accès admin ────────────────────────────────── */
+
+.app-header__side {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.header-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.42rem;
+  min-height: 40px;
+  padding: 0 0.9rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+  font-size: 0.85rem;
+  font-weight: 700;
+  text-decoration: none;
+  white-space: nowrap;
+  transition: border-color 120ms ease, color 120ms ease, background-color 120ms ease,
+    box-shadow 120ms ease;
+}
+
+.header-link:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent-strong);
+}
+
+/* Le cadenas indique tout de suite que l'espace est réservé. */
+.header-link--admin {
+  border-color: var(--color-accent-line);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+.header-link--admin:hover {
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: 0 6px 14px -6px rgb(10 111 107 / 0.65);
+}
+
+.header-link svg {
+  flex: 0 0 auto;
+}
+
+/* ── Page mot de passe ───────────────────────────────────── */
+
+.gate {
+  display: grid;
+  place-items: center;
+  min-height: 58vh;
+  padding: var(--space-4) 0;
+}
+
+.gate__card {
+  width: min(100%, 420px);
+  padding: clamp(1.5rem, 5vw, 2.25rem);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-raised);
+  text-align: center;
+}
+
+.gate__icon {
+  display: grid;
+  width: 46px;
+  height: 46px;
+  margin: 0 auto var(--space-4);
+  place-items: center;
+  border: 1px solid var(--color-accent-line);
+  border-radius: 14px;
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+.gate__title {
+  font-size: 1.2rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.gate__text {
+  margin-top: 0.5rem;
+  color: var(--color-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.gate__form {
+  display: grid;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+
+.gate__error {
+  margin-top: var(--space-3);
+  color: var(--color-negative);
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
+.gate__back {
+  display: inline-block;
+  margin-top: var(--space-5);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  font-weight: 650;
+  text-decoration: none;
+}
+
+.gate__back:hover {
+  color: var(--color-accent-strong);
+}
+
+/* ── Page admin ──────────────────────────────────────────── */
+
+.admin {
+  display: grid;
+  gap: var(--space-5);
+}
+
+.admin__head {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+}
+
+.admin__title {
+  margin-top: 0.35rem;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+}
+
+.admin__stats {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-3) var(--space-5);
+  padding: 0.7rem 1.1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  box-shadow: var(--shadow-card);
+}
+
+.admin__stats dt {
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+}
+
+.admin__stats dd {
+  color: var(--color-text);
+  font-size: 1rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.admin__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-5);
+  align-items: start;
+}
+
+.admin__footnote {
+  padding: 0.8rem 1.1rem;
+  border: 1px dashed var(--color-border-strong);
+  border-radius: var(--radius-md);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.admin__footnote strong {
+  color: var(--color-text-soft);
+}
+
+.admin__reset {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-3);
+  margin-top: var(--space-3);
+  border-top: 1px dashed var(--color-border-strong);
+}
+
+.admin__reset span {
+  flex: 1 1 12rem;
+  font-size: 0.78rem;
+}
+
+/* Action rare et destructrice : discrète, mais reconnaissable au rouge. */
+.button--ghost {
+  min-height: 38px;
+  padding: 0.4rem 0.9rem;
+  border: 1px solid rgb(196 52 42 / 0.3);
+  background: transparent;
+  color: var(--color-negative);
+  font-size: 0.82rem;
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: var(--color-negative-soft);
+  filter: none;
+}
+
+/* ── Cartes de saisie ────────────────────────────────────── */
+
+.admin-card {
+  padding: var(--space-5) clamp(1.1rem, 2.4vw, 1.6rem) var(--space-5);
+}
+
+.admin-card__head {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding-bottom: var(--space-4);
+  margin-bottom: var(--space-4);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.admin-card__badge {
+  display: grid;
+  flex: 0 0 auto;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.admin-card__badge--in {
+  border-color: rgb(8 127 95 / 0.18);
+  background: var(--color-positive-soft);
+  color: var(--color-positive);
+}
+
+.admin-card__badge--out {
+  border-color: rgb(196 52 42 / 0.18);
+  background: var(--color-negative-soft);
+  color: var(--color-negative);
+}
+
+.admin-card__badge--member {
+  border-color: var(--color-accent-line);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+.admin-card__badge--edit {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-soft);
+}
+
+.admin-card__badge--rate {
+  border-color: rgb(178 106 0 / 0.2);
+  background: var(--color-warning-soft);
+  color: var(--color-warning);
+}
+
+.admin-card__title {
+  font-size: 1.02rem;
+  font-weight: 780;
+  letter-spacing: -0.015em;
+}
+
+.admin-card__subtitle {
+  margin-top: 0.2rem;
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+/* ── Formulaires ─────────────────────────────────────────── */
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.form__row {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-4);
+}
+
+.form__row--thirds {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+/*
+ * `align-content: start` est indispensable : sans lui, les lignes « auto » se
+ * répartissent la hauteur du plus grand champ de la rangée, et un champ pourvu
+ * d'une note décale et étire le champ voisin qui n'en a pas.
+ */
+.field {
+  display: grid;
+  align-content: start;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+/* Hauteur fixe : les libellés d'une même rangée gardent leurs champs alignés. */
+.field__label {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 26px;
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.field__label-text {
+  margin-right: auto;
+}
+
+.field__optional {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 600;
+}
+
+.field__hint {
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  line-height: 1.4;
+}
+
+.input {
+  width: 100%;
+  min-height: 42px;
+  padding: 0.5rem 0.7rem;
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-sm);
+  background: var(--color-surface);
+  color: var(--color-text);
+  font-size: 0.92rem;
+  transition: border-color 120ms ease;
+}
+
+.input:hover {
+  border-color: var(--color-accent-line);
+}
+
+.input:focus-visible {
+  border-color: var(--color-accent);
+}
+
+select.input {
+  appearance: none;
+  padding-right: 2rem;
+  background-image: linear-gradient(45deg, transparent 50%, var(--color-muted) 50%),
+    linear-gradient(135deg, var(--color-muted) 50%, transparent 50%);
+  background-position: calc(100% - 1.05rem) 1.15rem, calc(100% - 0.75rem) 1.15rem;
+  background-size: 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* ── Pastilles de couleur ────────────────────────────────── */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-top: 0.15rem;
+}
+
+.swatch {
+  --swatch: var(--color-accent);
+
+  position: relative;
+  width: 30px;
+  height: 30px;
+  border: 2px solid var(--swatch);
+  border-radius: 50%;
+  background: var(--swatch);
+  cursor: pointer;
+  transition: box-shadow 120ms ease, transform 120ms ease;
+}
+
+.swatch input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.swatch:hover {
+  transform: translateY(-1px);
+}
+
+.swatch--active {
+  box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 5px var(--swatch);
+}
+
+.swatch:focus-within {
+  box-shadow: 0 0 0 3px var(--color-surface), 0 0 0 5px var(--swatch);
+}
+
+.swatch--teal { --swatch: #0d8a85; }
+.swatch--blue { --swatch: #2f6fd0; }
+.swatch--violet { --swatch: #7546cf; }
+.swatch--amber { --swatch: #b26a00; }
+.swatch--coral { --swatch: #cf5145; }
+.swatch--green { --swatch: #2a7a52; }
+
+/* ── Bouton + retour ─────────────────────────────────────── */
+
+.form__actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-top: var(--space-1);
+}
+
+.button {
+  min-height: 44px;
+  padding: 0.55rem 1.2rem;
+  border-radius: var(--radius-sm);
+  color: #fff;
+  font-size: 0.9rem;
+  font-weight: 750;
+  transition: filter 120ms ease, opacity 120ms ease;
+}
+
+.button:hover:not(:disabled) {
+  filter: brightness(1.08);
+}
+
+.button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+.button--in {
+  background: var(--color-positive);
+}
+
+.button--out {
+  background: var(--color-negative);
+}
+
+.button--member {
+  background: var(--color-accent);
+}
+
+.button--rate {
+  background: var(--color-warning);
+}
+
+.button--edit {
+  background: var(--color-text-soft);
+}
+
+.form__feedback {
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.form__feedback--in {
+  color: var(--color-positive);
+}
+
+.form__feedback--out {
+  color: var(--color-negative);
+}
+
+.form__feedback--member {
+  color: var(--color-accent-strong);
+}
+
+.form__feedback--rate {
+  color: var(--color-warning);
+}
+
+.form__feedback--edit {
+  color: var(--color-text-soft);
+}
+
+/* ── Taux de change ──────────────────────────────────────── */
+
+/* Le taux en vigueur avant tout : c'est lui qu'on vient vérifier. */
+.rate-current {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.2rem 0.6rem;
+  padding: 0.7rem 0.95rem;
+  margin-bottom: var(--space-4);
+  border: 1px solid rgb(178 106 0 / 0.2);
+  border-radius: var(--radius-sm);
+  background: var(--color-warning-soft);
+}
+
+.rate-current strong {
+  color: var(--color-warning);
+  font-size: 1.05rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate-current span {
+  color: var(--color-text-soft);
+  font-size: 0.8rem;
+  font-weight: 650;
+}
+
+/* « 1 € = [ 5 100 ] Ar » — la saisie se lit comme la phrase. */
+.rate-input {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.rate-input .input {
+  flex: 1 1 auto;
+  min-width: 0;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate-input__prefix,
+.rate-input__suffix {
+  flex: 0 0 auto;
+  color: var(--color-text-soft);
+  font-size: 0.9rem;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.admin-card__note {
+  padding-top: var(--space-4);
+  margin-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+  color: var(--color-muted);
+  font-size: 0.82rem;
+  line-height: 1.55;
+}
+
+.admin-card__note strong {
+  color: var(--color-text-soft);
+}
+
+.rate-history {
+  display: grid;
+  gap: 0.3rem;
+  margin-top: var(--space-3);
+}
+
+.rate-history li {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-3);
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.rate-history li span:first-child {
+  font-weight: 700;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 980px) {
+  .admin__grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .rate-input {
+    flex-wrap: wrap;
+  }
+
+  .rate-input .input {
+    flex-basis: 100%;
+    order: 3;
+  }
+}
+
+@media (max-width: 760px) {
+  .app-header__date {
+    display: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header__side {
+    gap: var(--space-2);
+  }
+
+  /* Sur téléphone, le cadenas seul suffit : le libellé prendrait trop de place. */
+  .header-link--admin {
+    padding: 0;
+    width: 40px;
+    justify-content: center;
+  }
+
+  .header-link--admin .header-link__label {
+    display: none;
+  }
+
+  .admin__head {
+    align-items: flex-start;
+  }
+
+  .admin__stats {
+    gap: var(--space-4);
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .form__row,
+  .form__row--thirds {
+    grid-template-columns: 1fr;
+    gap: var(--space-3);
+  }
+
+  .button {
+    width: 100%;
+  }
+}

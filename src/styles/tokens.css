@@ -1,0 +1,51 @@
+:root {
+  color-scheme: light;
+
+  /* Surfaces */
+  --color-bg: #f4f7f7;
+  --color-surface: #ffffff;
+  --color-surface-sunken: #f7fafa;
+  --color-border: #e4eaec;
+  --color-border-strong: #d3dcdf;
+
+  /* Texte */
+  --color-text: #0e1b20;
+  --color-text-soft: #48565c;
+  --color-muted: #77848a;
+
+  /* Accent */
+  --color-accent: #0d8a85;
+  --color-accent-strong: #0a6f6b;
+  --color-accent-soft: #e6f5f4;
+  --color-accent-line: #bfe4e1;
+
+  /* Sémantique */
+  --color-positive: #087f5f;
+  --color-positive-soft: #e6f6f0;
+  --color-negative: #c4342a;
+  --color-negative-soft: #fdeeec;
+  --color-warning: #b26a00;
+  --color-warning-soft: #fff5e3;
+  --color-neutral-fill: #e7edee;
+
+  /* Effets */
+  --shadow-card: 0 1px 2px rgb(16 40 46 / 0.04), 0 12px 32px -12px rgb(16 40 46 / 0.12);
+  --shadow-raised: 0 2px 6px rgb(16 40 46 / 0.06), 0 18px 40px -16px rgb(16 40 46 / 0.2);
+  --ring: 0 0 0 3px rgb(13 138 133 / 0.22);
+
+  --radius-lg: 20px;
+  --radius-md: 14px;
+  --radius-sm: 10px;
+  --radius-pill: 999px;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-5: 1.25rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-10: 2.5rem;
+
+  --max-width: 1240px;
+}

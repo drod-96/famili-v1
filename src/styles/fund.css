@@ -1,0 +1,806 @@
+/* ── Carte solde ─────────────────────────────────────────── */
+
+.balance-card {
+  display: flex;
+  flex-direction: column;
+  padding: clamp(1.35rem, 3vw, 2.25rem);
+  background:
+    linear-gradient(180deg, rgb(13 138 133 / 0.045), transparent 45%),
+    var(--color-surface);
+}
+
+.balance-card__top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.balance-card__amount {
+  color: var(--color-accent-strong);
+  font-size: clamp(2.4rem, 6.2vw, 4.4rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.045em;
+  line-height: 1;
+}
+
+.balance-card__caption {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: var(--space-3);
+  color: var(--color-muted);
+  font-size: 0.92rem;
+}
+
+.balance-card__equivalent {
+  padding: 0.15rem 0.55rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+  color: var(--color-text-soft);
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.balance-card__stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-6);
+}
+
+.stat {
+  display: grid;
+  gap: 0.3rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface-sunken);
+}
+
+.stat--in {
+  border-color: rgb(8 127 95 / 0.16);
+  background: var(--color-positive-soft);
+}
+
+.stat--out {
+  border-color: rgb(196 52 42 / 0.14);
+  background: var(--color-negative-soft);
+}
+
+.stat__label {
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.stat__value {
+  font-size: clamp(1.05rem, 2vw, 1.32rem);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.02em;
+}
+
+.balance-card__rate {
+  margin-top: var(--space-4);
+  color: var(--color-muted);
+  font-size: 0.74rem;
+}
+
+/* ── Bascule Ar / € ──────────────────────────────────────── */
+
+.currency-toggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface-sunken);
+}
+
+.currency-toggle--sm {
+  padding: 2px;
+}
+
+.currency-toggle--sm .currency-toggle__option {
+  min-width: 34px;
+  padding: 0.16rem 0.45rem;
+  font-size: 0.78rem;
+}
+
+.currency-toggle__option {
+  min-width: 46px;
+  padding: 0.36rem 0.7rem;
+  border-radius: var(--radius-pill);
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  font-weight: 750;
+  line-height: 1.2;
+  transition: background-color 120ms ease, color 120ms ease, box-shadow 120ms ease;
+}
+
+.currency-toggle__option:hover {
+  color: var(--color-text-soft);
+}
+
+.currency-toggle__option--active,
+.currency-toggle__option--active:hover {
+  background: var(--color-accent);
+  color: #fff;
+  box-shadow: 0 4px 10px -4px rgb(13 138 133 / 0.8);
+}
+
+/* ── Carte mois payés ────────────────────────────────────── */
+
+.months-card {
+  padding: var(--space-5) clamp(1.1rem, 2.4vw, 1.75rem) var(--space-5);
+}
+
+.months-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.months-card__title {
+  display: grid;
+  gap: 0.45rem;
+  min-width: 0;
+}
+
+.months-card__member {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+  font-size: 1.05rem;
+  font-weight: 780;
+  letter-spacing: -0.015em;
+}
+
+.months-card__member span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Membre en retard sur le mois en cours : nom et compteur en rouge. */
+.months-card--late .months-card__member .member-name__text {
+  color: var(--color-negative);
+}
+
+.months-card--late .months-card__count strong {
+  color: var(--color-negative);
+}
+
+.months-card__figures {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  margin: var(--space-4) 0 var(--space-5);
+}
+
+.months-card__count {
+  display: flex;
+  align-items: baseline;
+  gap: 0.4rem;
+}
+
+.months-card__count strong {
+  color: var(--color-accent-strong);
+  font-size: 2.4rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.04em;
+  line-height: 1;
+}
+
+.months-card__count span {
+  color: var(--color-muted);
+  font-size: 0.95rem;
+  font-weight: 650;
+}
+
+.months-card__meta {
+  display: flex;
+  gap: var(--space-5);
+}
+
+.months-card__meta dt {
+  color: var(--color-muted);
+  font-size: 0.74rem;
+  font-weight: 650;
+}
+
+.months-card__meta dd {
+  color: var(--color-text);
+  font-size: 0.92rem;
+  font-weight: 750;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Le hors-cotisation reste en retrait : il ne compte pas dans les mois. */
+.months-card__meta-soft dd {
+  color: var(--color-muted);
+}
+
+/* ── Grille des mois ─────────────────────────────────────── */
+
+/*
+ * Une année civile = 12 cases sur une seule ligne (janvier → décembre).
+ * La première année n'en compte que 4 : la caisse démarre en septembre.
+ */
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
+  gap: clamp(0.3rem, 0.8vw, 0.55rem);
+}
+
+.month-cell {
+  display: grid;
+  gap: 0.35rem;
+  justify-items: center;
+  min-width: 0;
+}
+
+.month-cell__track {
+  position: relative;
+  display: flex;
+  align-items: flex-end;
+  width: 100%;
+  height: 72px;
+  overflow: hidden;
+  border: 1.5px solid transparent;
+  border-radius: 10px;
+  background: var(--color-neutral-fill);
+}
+
+/*
+ * Le remplissage représente l'argent réellement versé (toujours en vert-teal).
+ * Le fond et la bordure de la piste représentent, eux, l'échéance du mois.
+ */
+.month-cell__fill {
+  width: 100%;
+  border-radius: 8px;
+  background: linear-gradient(180deg, #17aaa3, var(--color-accent-strong));
+  transition: height 220ms ease;
+}
+
+.month-cell__track--paid {
+  border-color: rgb(13 138 133 / 0.18);
+  background: var(--color-accent-soft);
+}
+
+/* Mois passé non couvert : hachures rouges, impossible à manquer. */
+.month-cell__track--late {
+  border-color: rgb(196 52 42 / 0.4);
+  background: repeating-linear-gradient(135deg, #fdeeec 0 5px, #f9d9d5 5px 10px);
+}
+
+.month-cell__track--due {
+  border-style: dashed;
+  border-color: rgb(178 106 0 / 0.5);
+  background: var(--color-warning-soft);
+}
+
+.month-cell__track--upcoming {
+  border-color: var(--color-border);
+  background: var(--color-surface-sunken);
+}
+
+.month-cell__label {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--color-muted);
+  font-size: clamp(0.6rem, 1.1vw, 0.74rem);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.month-cell__label--paid {
+  color: var(--color-accent-strong);
+}
+
+.month-cell__label--late {
+  color: var(--color-negative);
+}
+
+.month-cell__label--due {
+  color: var(--color-warning);
+}
+
+/* Rappel de l'année : réservé sur toutes les cases pour garder l'alignement. */
+.month-cell__year {
+  min-height: 0.95rem;
+  color: var(--color-muted);
+  font-size: 0.63rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.03em;
+}
+
+/* ── Légende + note ──────────────────────────────────────── */
+
+.month-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 1rem;
+  margin-top: var(--space-5);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border);
+}
+
+.month-legend__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 650;
+}
+
+.month-legend__dot {
+  width: 10px;
+  height: 10px;
+  border: 1.5px solid transparent;
+  border-radius: 3px;
+}
+
+.month-legend__dot--paid {
+  background: var(--color-accent);
+}
+
+.month-legend__dot--late {
+  background: var(--color-negative);
+}
+
+.month-legend__dot--due {
+  border-style: dashed;
+  border-color: var(--color-warning);
+  background: var(--color-warning-soft);
+}
+
+.month-legend__dot--upcoming {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-sunken);
+}
+
+.months-card__hint {
+  margin-top: var(--space-3);
+  color: var(--color-text-soft);
+  font-size: 0.84rem;
+  line-height: 1.5;
+}
+
+/* ── Mouvements récents ──────────────────────────────────── */
+
+.activity-card {
+  padding: var(--space-5) clamp(1.1rem, 2.4vw, 1.75rem) var(--space-4);
+}
+
+.activity-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.activity-card__title {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.activity-card__filter {
+  flex: 0 0 auto;
+  max-width: 100%;
+  min-height: 32px;
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-pill);
+  background: var(--color-surface);
+  color: var(--color-text-soft);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.activity-card__filter:hover {
+  border-color: var(--color-accent-line);
+  color: var(--color-accent-strong);
+}
+
+.activity-card__count {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 650;
+}
+
+.activity-card__empty {
+  padding: var(--space-6) 0;
+  color: var(--color-muted);
+  text-align: center;
+}
+
+/*
+ * La liste défile plutôt que d'être coupée : tous les mouvements sont là, et
+ * on peut remonter jusqu'au premier versement.
+ */
+.activity-list {
+  display: grid;
+  max-height: min(60vh, 560px);
+  overflow-y: auto;
+  padding-right: 0.15rem;
+}
+
+.activity-row {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  min-height: 62px;
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--color-border);
+  border-radius: var(--radius-sm);
+}
+
+.activity-row:last-child {
+  border-bottom: 0;
+}
+
+.activity-row--highlight {
+  background: linear-gradient(90deg, var(--color-accent-soft), transparent 70%);
+  box-shadow: inset 2px 0 0 var(--color-accent);
+}
+
+.activity-row__icon {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  border: 1px solid rgb(196 52 42 / 0.16);
+  border-radius: 10px;
+  background: var(--color-negative-soft);
+  color: var(--color-negative);
+  font-size: 0.9rem;
+}
+
+/* Entrée rattachée à personne : même case, mais du côté des entrées. */
+.activity-row--in .activity-row__icon {
+  border-color: rgb(8 127 95 / 0.16);
+  background: var(--color-positive-soft);
+  color: var(--color-positive);
+}
+
+.activity-row__body {
+  display: grid;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.activity-row__title {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.activity-row__title strong {
+  overflow: hidden;
+  font-size: 0.95rem;
+  font-weight: 780;
+  letter-spacing: -0.01em;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.activity-row__verb {
+  color: var(--color-muted);
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.activity-row__meta {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+  color: var(--color-muted);
+  font-size: 0.76rem;
+}
+
+.activity-row__note::before {
+  content: '·';
+  margin-right: 0.45rem;
+}
+
+.activity-row__value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  white-space: nowrap;
+}
+
+.activity-row__arrow {
+  color: var(--color-border-strong);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.activity-row__amount {
+  font-size: 0.98rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.015em;
+}
+
+.chip {
+  padding: 0.18rem 0.5rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-pill);
+  font-size: 0.72rem;
+  font-weight: 750;
+  line-height: 1.45;
+}
+
+.chip--months {
+  border-color: var(--color-accent-line);
+  background: var(--color-accent-soft);
+  color: var(--color-accent-strong);
+}
+
+.chip--out {
+  border-color: rgb(196 52 42 / 0.18);
+  background: var(--color-negative-soft);
+  color: var(--color-negative);
+}
+
+/*
+ * Participation ponctuelle : elle entre dans la caisse sans couvrir de mois.
+ * Volontairement neutre — ce n'est ni un retard ni de l'avance.
+ */
+.chip--oneoff {
+  border-color: var(--color-border-strong);
+  background: var(--color-surface-sunken);
+  color: var(--color-muted);
+}
+
+/* ── Classement des payeurs ──────────────────────────────── */
+
+.top-card {
+  padding: var(--space-5) clamp(1.1rem, 2.4vw, 1.75rem);
+}
+
+.top-card__head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-bottom: var(--space-3);
+  margin-bottom: var(--space-2);
+  border-bottom: 1px solid var(--color-border);
+}
+
+.top-card__count {
+  color: var(--color-muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.top-card__empty {
+  padding: var(--space-4) 0;
+  color: var(--color-muted);
+  font-size: 0.85rem;
+  text-align: center;
+}
+
+.top-list {
+  display: grid;
+  gap: 0.1rem;
+}
+
+.top-card__more {
+  width: 100%;
+  min-height: 38px;
+  margin-top: var(--space-2);
+  border-radius: var(--radius-sm);
+  color: var(--color-accent-strong);
+  font-size: 0.82rem;
+  font-weight: 750;
+}
+
+.top-card__more:hover {
+  background: var(--color-accent-soft);
+}
+
+.top-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  width: 100%;
+  min-height: 46px;
+  padding: 0.4rem 0.5rem;
+  border-radius: var(--radius-sm);
+  text-align: left;
+  transition: background-color 120ms ease;
+}
+
+.top-row:hover {
+  background: var(--color-surface-sunken);
+}
+
+.top-row--selected,
+.top-row--selected:hover {
+  background: var(--color-accent-soft);
+}
+
+.top-row__rank {
+  display: grid;
+  flex: 0 0 auto;
+  width: 22px;
+  height: 22px;
+  place-items: center;
+  border: 1px solid transparent;
+  border-radius: 50%;
+  color: var(--color-muted);
+  font-size: 0.72rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Podium : or, argent, cuivre. Au-delà, le rang reste en gris. */
+.top-row__rank--1 {
+  border-color: rgb(176 128 20 / 0.4);
+  background: #fbf1d5;
+  color: #8a6410;
+}
+
+.top-row__rank--2 {
+  border-color: rgb(122 134 140 / 0.38);
+  background: #eef1f2;
+  color: #67757c;
+}
+
+.top-row__rank--3 {
+  border-color: rgb(166 92 52 / 0.36);
+  background: #f9ebe3;
+  color: #96522c;
+}
+
+/* Un total à zéro n'a pas de barre à montrer : la ligne s'efface un peu. */
+.top-row--empty .top-row__name .member-name__text,
+.top-row--empty .top-row__value strong {
+  color: var(--color-muted);
+}
+
+.top-row__text {
+  display: grid;
+  gap: 0.28rem;
+  min-width: 0;
+  margin-right: auto;
+  flex: 1 1 auto;
+}
+
+.top-row__name {
+  font-size: 0.86rem;
+}
+
+/* La barre se lit par rapport au premier du classement, pas au total collecté. */
+.top-row__bar {
+  display: block;
+  overflow: hidden;
+  height: 4px;
+  border-radius: var(--radius-pill);
+  background: var(--color-neutral-fill);
+}
+
+.top-row__fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--radius-pill);
+  background: var(--color-accent);
+}
+
+.top-row--selected .top-row__fill {
+  background: var(--color-accent-strong);
+}
+
+.top-row__value {
+  display: grid;
+  flex: 0 0 auto;
+  gap: 0.05rem;
+  justify-items: end;
+  text-align: right;
+}
+
+.top-row__value strong {
+  font-size: 0.86rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+}
+
+.top-row__split {
+  color: var(--color-muted);
+  font-size: 0.7rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+/* ── Responsive ──────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .top-row__split {
+    display: none;
+  }
+
+  .balance-card__stats {
+    gap: var(--space-2);
+  }
+
+  .stat {
+    padding: 0.7rem 0.8rem;
+  }
+
+  .months-card__head {
+    flex-direction: column;
+    gap: var(--space-3);
+  }
+
+  .months-card__figures {
+    align-items: center;
+  }
+
+  .months-card__meta {
+    gap: var(--space-4);
+  }
+
+  .month-grid {
+    grid-template-columns: repeat(6, minmax(0, 1fr));
+    gap: 0.35rem;
+  }
+
+  .month-cell__track {
+    height: 56px;
+  }
+
+  .activity-row {
+    grid-template-columns: auto minmax(0, 1fr);
+    align-items: start;
+    padding-block: 0.65rem;
+  }
+
+  .activity-row__value {
+    grid-column: 2;
+    justify-content: flex-start;
+    margin-top: 0.15rem;
+  }
+
+  .activity-row__arrow {
+    display: none;
+  }
+}
+
+@media (max-width: 380px) {
+  .balance-card__stats {
+    grid-template-columns: 1fr;
+  }
+
+  .month-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
