@@ -3,9 +3,11 @@ dist
 .DS_Store
 *.local
 
-# Données de la caisse en clair : noms et montants réels.
-# Le dépôt est public, seul le fichier scellé (src/data/sealedFund.ts) y entre.
-data/
+# Données réelles de la caisse : c'est la source de `npm run seed:supabase`,
+# et elle n'a rien à faire dans un dépôt public.
+# La barre oblique ancre le motif à la racine : sans elle, il attraperait
+# aussi bien src/data/ que n'importe quel autre dossier nommé data.
+/data/
 
 # Raccordement à Supabase : URL et clés. `.env.example` sert de modèle.
 .env

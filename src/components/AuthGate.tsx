@@ -5,9 +5,8 @@ import { LockIcon } from './admin/AdminGate';
 /**
  * Demande la connexion avant d'afficher la caisse.
  *
- * Remplace la phrase de la famille dès que Supabase est branché : au lieu d'un
- * secret partagé par tout le monde, chacun a son compte, et c'est la base qui
- * refuse de répondre à qui n'est pas connecté.
+ * Chacun a son compte, et c'est la base qui refuse de répondre à qui n'est pas
+ * connecté : rien à cacher dans la page, rien à déchiffrer côté navigateur.
  */
 export function AuthGate({ children }: PropsWithChildren) {
   const [state, setState] = useState<'checking' | 'out' | 'in'>('checking');

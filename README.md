@@ -53,53 +53,20 @@ npm run typecheck
 npm run build
 ```
 
-## Données scellées
+## Où vivent les données
 
-Le site est publié sur une **adresse publique** et le dépôt GitHub est **public** :
-sans précaution, n'importe qui tombant sur le lien lirait les noms de la famille
-et ce que chacun a donné.
+**Dans Supabase**, dès que le projet est raccordé : une base, partagée par tous,
+derrière une authentification. Rien ne transite par le dépôt, rien n'est écrit
+dans la page. C'est le mode dans lequel l'application est faite pour tourner —
+voir [Brancher Supabase](#brancher-supabase).
 
-Les données ne sont donc jamais versionnées en clair :
+Le fichier `data/fund.seed.json` garde les données réelles pour alimenter la
+base la première fois (`npm run seed:supabase`). Il n'est **jamais versionné** :
+le dépôt est public.
 
-| Fichier | Contenu | Versionné |
-| --- | --- | --- |
-| `data/fund.seed.json` | les vraies données, en clair | **non** (`.gitignore`) |
-| `src/data/sealedFund.ts` | les mêmes, chiffrées | oui |
-
-Le chiffrement est de l'**AES-GCM 256 bits**, avec une clé dérivée de la phrase
-de la famille par **PBKDF2-SHA256** (310 000 tours). Rien d'asymétrique : on
-protège un fichier, on n'échange pas de clés — RSA n'aurait rien à faire ici.
-Tout passe par l'API Web Crypto du navigateur, sans aucune dépendance.
-
-À l'ouverture du site, `FundGate` demande la phrase et déchiffre en mémoire. Une
-phrase fausse échoue proprement : AES-GCM authentifie ce qu'il déchiffre, il ne
-rend pas n'importe quoi.
-
-### Changer les données ou la phrase
-
-```bash
-# après avoir modifié data/fund.seed.json
-npm run seal          # demande la phrase, réécrit src/data/sealedFund.ts
-```
-
-La phrase peut aussi être passée sans invite, pour un script :
-
-```bash
-FAMILI_PASSPHRASE="…" npm run seal
-```
-
-> **La phrase de départ est `andamboly`.** Elle est publique — elle est écrite
-> ici. **Rescelle avec une vraie phrase avant de publier quoi que ce soit**, et
-> transmets-la à la famille par un autre canal que le dépôt.
-
-### Ce que ça protège, et ce que ça ne protège pas
-
-- ✅ Le dépôt public ne révèle **rien** : ni les noms, ni les montants.
-- ✅ Le site publié non plus, tant que la phrase n'est pas donnée.
-- ⚠️ Toute personne à qui la phrase est transmise peut tout lire. C'est un
-  secret **partagé par la famille**, pas un compte par personne.
-- ⚠️ La phrase circule dans le navigateur. Elle protège contre un curieux qui
-  tombe sur l'adresse, pas contre quelqu'un qui a déjà accès à l'appareil.
+**Sans Supabase**, l'application se replie sur le `localStorage` du navigateur,
+sur une caisse vide. C'est un mode de développement — `npm run dev` marche sans
+compte — pas un mode de consultation : rien n'y est partagé entre appareils.
 
 ## Les réglages à connaître
 
@@ -202,6 +169,9 @@ et le solde au taux saisi.
 
 ### Mot de passe
 
+**Ce mot de passe ne sert qu'en mode local.** Dès que Supabase est branché, le
+droit de saisir vient de la base (`app_users.is_admin`) et cet écran disparaît.
+
 Le mot de passe par défaut est **`andamboly`**. L'accès reste ouvert jusqu'à la
 fermeture de l'onglet.
 
@@ -218,14 +188,15 @@ jamais écrit dans le code.
 Le membre responsable de la caisse porte `isAdmin: true` dans les données ; il est
 signalé « responsable » sous son nom dans la liste de gauche.
 
-> **Attention — pas de serveur pour l'instant.** Deux conséquences :
+> **Attention — tant que Supabase n'est pas branché**, deux limites :
 >
-> 1. Les saisies sont enregistrées dans le navigateur (`localStorage`) de l'appareil
->    qui les fait ; elles ne sont pas partagées entre téléphones.
+> 1. Les saisies restent dans le navigateur (`localStorage`) de l'appareil qui
+>    les fait ; elles ne sont pas partagées entre téléphones.
 > 2. Le mot de passe est vérifié **dans le navigateur**. Il empêche l'accès
->    accidentel, mais quelqu'un qui inspecte le code du site peut le contourner.
+>    accidentel, mais quelqu'un qui inspecte le code du site le contourne.
 >
-> Le passage à Supabase (authentification + Row Level Security) réglera les deux.
+> Le code Supabase est écrit et règle les deux : il ne manque que le projet et
+> ses deux variables. Voir [Brancher Supabase](#brancher-supabase).
 
 ## Les membres
 
@@ -234,10 +205,9 @@ a ni famille ni chef de famille. Le tri se fait sur le prénom puis le nom, en
 ignorant les accents et la casse (`Élodie` et `elodie` se suivent), et sans tenir
 compte du titre : « Tonton Jean Michel » se classe à **J**, pas à **T**.
 
-Deux possibilités pour saisir la vraie liste : passer par l'espace admin ci-dessus,
-ou modifier directement `data/fund.seed.json` — le fichier de départ, **jamais
-versionné** (voir « Données scellées » plus bas). Après modification, il faut le
-resceller : `npm run seal`.
+Une fois Supabase branché, tout se saisit depuis l'espace admin et se partage
+aussitôt. Le fichier `data/fund.seed.json` ne sert qu'à **remplir la base la
+première fois** ; passé ce cap, il ne fait plus foi.
 
 ```json
 "members": [
@@ -396,16 +366,14 @@ src/
 │   ├── MemberAvatar.tsx
 │   ├── MemberName.tsx           # titre gris minuscule + prénom et nom
 │   ├── AuthGate.tsx             # connexion par e-mail (mode Supabase)
-│   ├── FundGate.tsx             # phrase de la famille (mode local)
 │   ├── PaidMonthsCard.tsx       # mois payés du membre sélectionné
 │   ├── TopPayersCard.tsx        # classement cotisations + ponctuel
 │   ├── StatusPill.tsx
 │   └── admin/                   # AdminGate + formulaires de saisie et de correction
-├── data/sealedFund.ts           # données de départ, chiffrées (engendré)
 ├── domain/models.ts
 ├── services/                    # FinanceRepository, stockage local, Supabase, auth
 ├── styles/                      # tokens, global, layout, sidebar, fund, admin
-└── utils/                       # calcul des mois, formatage, routage, accès, scellement
+└── utils/                       # calcul des mois, formatage, routage, accès admin
 ```
 
 ## Brancher Supabase
@@ -416,9 +384,9 @@ variables : **dès qu'elles sont définies, l'application bascule toute seule.**
 | | Sans Supabase | Avec Supabase |
 | --- | --- | --- |
 | Données | `localStorage`, **propres à chaque appareil** | une base, **partagée par tous** |
-| Accès | phrase de la famille, secret commun | un compte par personne, lien par e-mail |
+| Contenu au départ | une caisse vide | les tables, remplies par `seed:supabase` |
+| Accès | ouvert : tout est dans le navigateur | un compte par personne, lien par e-mail |
 | Droit d'écrire | mot de passe vérifié dans le navigateur | `app_users.is_admin`, vérifié par la base |
-| Point de départ | paquet scellé dans la page | les tables |
 
 Le choix se fait dans [`src/services/repository.ts`](src/services/repository.ts) au
 démarrage. Les composants ne savent pas laquelle des deux ils utilisent.
@@ -494,8 +462,8 @@ publié, et c'est normal. Ce qui protège les données, ce sont les règles RLS.
 ### Ce que ça change pour la famille
 
 Le responsable saisit un mouvement depuis son téléphone, **tout le monde le voit
-au chargement suivant**. Le paquet scellé et la phrase de la famille ne servent
-plus à rien : les données ne voyagent plus dans la page.
+au chargement suivant**. Et les données ne sont plus nulle part ailleurs que dans
+la base : ni dans le dépôt, ni dans la page publiée.
 
 ## Mise en page selon l'écran
 

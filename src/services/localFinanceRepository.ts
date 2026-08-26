@@ -10,11 +10,10 @@ import type { FinanceRepository } from './financeRepository';
 
 /*
  * La version fait partie de la clé : la remonter d'un cran fait repartir tous
- * les appareils du fichier de départ. C'est le seul moyen de remplacer une
- * liste de membres périmée — reseller `data/fund.seed.json` ne suffit pas, les données
- * déjà écrites dans le navigateur ont la priorité et survivent au rechargement.
+ * les appareils de zéro, sans quoi les données déjà écrites dans le navigateur
+ * survivraient au rechargement.
  */
-/** Caisse vide, tant que le paquet scellé n'a pas été ouvert. */
+/** Point de départ : une caisse vide. Les vraies données vivent dans Supabase. */
 const EMPTY_FUND: FundSnapshot = {
   members: [],
   contributions: [],
@@ -34,17 +33,6 @@ const LEGACY_KEYS = ['famili.fund.v1'];
  * Elles ne sont pas partagées entre téléphones tant qu'il n'y a pas de serveur.
  */
 export class LocalFinanceRepository implements FinanceRepository {
-  /**
-   * Données de départ, fournies une fois le paquet scellé ouvert.
-   * Elles ne sont pas importées : elles n'existent en clair qu'après
-   * déchiffrement, en mémoire.
-   */
-  private seed: FundSnapshot = EMPTY_FUND;
-
-  setSeed(seed: FundSnapshot): void {
-    this.seed = seed;
-  }
-
   async getFundSnapshot(): Promise<FundSnapshot> {
     return this.read();
   }
@@ -116,9 +104,9 @@ export class LocalFinanceRepository implements FinanceRepository {
     return this.write(snapshot);
   }
 
-  /** Repart des données de départ. */
+  /** Vide les saisies de cet appareil. */
   async reset(): Promise<FundSnapshot> {
-    return this.write(structuredClone(this.seed));
+    return this.write(structuredClone(EMPTY_FUND));
   }
 
   private read(): FundSnapshot {
@@ -140,7 +128,7 @@ export class LocalFinanceRepository implements FinanceRepository {
       // Stockage indisponible (navigation privée, quota) : on repart du modèle.
     }
 
-    return structuredClone(this.seed);
+    return structuredClone(EMPTY_FUND);
   }
 
   private write(snapshot: FundSnapshot): FundSnapshot {

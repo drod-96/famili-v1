@@ -13,8 +13,8 @@ export const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL ?? '';
 export const SUPABASE_ANON_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY ?? '';
 
 /**
- * Tant que ce n'est pas configuré, l'application retombe sur le stockage local
- * et le paquet scellé : `npm run dev` marche sans compte Supabase.
+ * Tant que ce n'est pas configuré, l'application retombe sur le stockage local,
+ * sur une caisse vide : `npm run dev` marche sans compte Supabase.
  */
 export function isSupabaseConfigured(): boolean {
   return SUPABASE_URL.length > 0 && SUPABASE_ANON_KEY.length > 0;

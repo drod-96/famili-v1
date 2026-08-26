@@ -119,16 +119,16 @@ export function AdminPage({
               className="button button--ghost"
               onClick={() => {
                 const sure = window.confirm(
-                  'Effacer toutes les saisies de cet appareil et repartir de la liste de départ ?',
+                  'Effacer toutes les saisies enregistrées sur cet appareil ?',
                 );
                 if (sure) void onReset();
               }}
             >
-              Repartir des données de départ
+              Vider cet appareil
             </button>
             <span>
-              Efface les saisies de cet appareil. À utiliser après une mise à jour de la liste
-              des membres.
+              Efface les saisies du navigateur et repart d’une caisse vide. Sans effet sur
+              les autres appareils, puisqu’ils ont chacun les leurs.
             </span>
           </p>
         )}
