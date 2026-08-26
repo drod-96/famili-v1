@@ -1,4 +1,3 @@
-import { isSupabaseConfigured } from '../config/supabase';
 import type { FinanceRepository } from './financeRepository';
 import { LocalFinanceRepository } from './localFinanceRepository';
 import { SupabaseFinanceRepository } from './supabaseFinanceRepository';
@@ -23,9 +22,6 @@ function create(): FinanceRepository {
 }
 
 export const repository = create();
-
-/** Vrai quand les données sont partagées entre tous les appareils. */
-export const isShared = isSupabaseConfigured();
 
 /**
  * Le dépôt local, quand c'est lui qui tourne.

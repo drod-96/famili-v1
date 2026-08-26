@@ -3,12 +3,18 @@
 --
 -- À exécuter une fois dans l'éditeur SQL du projet Supabase.
 --
--- Principe : personne ne lit quoi que ce soit sans être connecté, et seuls les
--- responsables écrivent. Les montants sont TOUJOURS en ariary, entiers.
+-- Principe : la caisse se consulte librement, seuls les responsables écrivent.
+-- Les montants sont TOUJOURS en ariary, entiers.
+--
+-- ⚠ La lecture est ouverte à `anon`, le rôle de la clé publique du site. Comme
+-- cette clé est dans le code de la page publiée, les noms et les montants sont
+-- de fait publics : n'importe qui peut interroger la base sans compte. C'est un
+-- choix assumé pour que la famille n'ait qu'un lien à ouvrir.
 -- ═══════════════════════════════════════════════════════════════════════════
 
--- ── Qui utilise l'application ──────────────────────────────────────────────
--- Une ligne par compte, créée automatiquement à la première connexion.
+-- ── Qui saisit dans l'application ──────────────────────────────────────────
+-- Une ligne par compte, créée automatiquement à l'invitation.
+-- Seuls les responsables ont un compte : consulter la caisse n'en demande pas.
 -- `is_admin` se met à la main : c'est la seule chose qui donne le droit d'écrire.
 create table if not exists public.app_users (
   user_id    uuid primary key references auth.users (id) on delete cascade,
@@ -115,9 +121,10 @@ create index if not exists eur_rates_recent_idx on public.eur_rates (created_at 
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Row Level Security
 --
--- Lecture : toute personne connectée. Écriture : les responsables seulement.
--- Sans connexion, les tables sont muettes — c'est ce qui remplace la phrase
--- de la famille et le mot de passe vérifié dans le navigateur.
+-- Lecture : tout le monde, connecté ou non. Écriture : les responsables seuls.
+--
+-- `app_users` fait exception : chacun n'y voit que sa propre ligne, et sans
+-- compte on n'y voit rien. La liste des responsables ne se parcourt pas.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 alter table public.app_users     enable row level security;
@@ -126,8 +133,7 @@ alter table public.contributions enable row level security;
 alter table public.expenses      enable row level security;
 alter table public.eur_rates     enable row level security;
 
--- Chacun voit sa propre ligne, et rien d'autre : la liste des comptes ne se
--- parcourt pas depuis l'application.
+-- Chacun voit sa propre ligne, et rien d'autre.
 drop policy if exists "app_users: se voir soi-même" on public.app_users;
 create policy "app_users: se voir soi-même"
   on public.app_users for select
@@ -139,10 +145,13 @@ declare
   target text;
 begin
   foreach target in array array['members', 'contributions', 'expenses', 'eur_rates'] loop
+    -- Ancien nom de la règle, du temps où la lecture demandait un compte.
     execute format('drop policy if exists "%1$s: lecture connectée" on public.%1$I', target);
+
+    execute format('drop policy if exists "%1$s: lecture ouverte" on public.%1$I', target);
     execute format(
-      'create policy "%1$s: lecture connectée" on public.%1$I
-         for select to authenticated using (true)', target);
+      'create policy "%1$s: lecture ouverte" on public.%1$I
+         for select to anon, authenticated using (true)', target);
 
     execute format('drop policy if exists "%1$s: écriture responsable" on public.%1$I', target);
     execute format(

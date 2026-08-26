@@ -385,7 +385,7 @@ variables : **dès qu'elles sont définies, l'application bascule toute seule.**
 | --- | --- | --- |
 | Données | `localStorage`, **propres à chaque appareil** | une base, **partagée par tous** |
 | Contenu au départ | une caisse vide | les tables, remplies par `seed:supabase` |
-| Accès | ouvert : tout est dans le navigateur | un compte par personne, lien par e-mail |
+| Consulter | ouvert | **ouvert** : le lien suffit, aucun compte |
 | Droit d'écrire | mot de passe vérifié dans le navigateur | `app_users.is_admin`, vérifié par la base |
 
 Le choix se fait dans [`src/services/repository.ts`](src/services/repository.ts) au
@@ -400,20 +400,25 @@ exécuter [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sq
 Il crée les quatre tables — `members`, `contributions`, `expenses`, `eur_rates` —,
 la table des comptes `app_users`, et les règles **RLS** :
 
-- **lecture** : toute personne connectée ;
+- **lecture** : tout le monde, connecté ou non ;
 - **écriture** : les seuls comptes dont `is_admin` vaut `true`.
 
-Sans connexion, les tables ne répondent rien. C'est ce qui remplace la phrase de
-la famille — et cette fois la protection est côté serveur, pas dans le navigateur.
+> **La lecture est délibérément ouverte.** La famille reçoit un lien, l'ouvre, et
+> voit la caisse — sans compte, sans mot de passe. Le revers : la clé `anon` est
+> dans le code du site publié, donc n'importe qui peut interroger la base
+> directement. **Les noms et les montants sont de fait publics.** Si ce n'est pas
+> ce que tu veux, remplace `to anon, authenticated` par `to authenticated` dans
+> la migration et remets `AuthGate` autour de `<App />` dans `main.tsx`.
 
 ### 2. Fermer les inscriptions
 
 **Authentication → Sign In / Providers → Email**, et décocher **Allow new users
-to sign up**. Sans ça, n'importe qui pourrait se créer un compte et lire la
-caisse.
+to sign up**.
 
-Les membres s'ajoutent ensuite un par un dans **Authentication → Users →
-Add user → Send invitation**.
+Consulter la caisse ne demande aucun compte : les seuls comptes qui existent
+sont ceux des **responsables**, créés à la main dans **Authentication → Users →
+Add user → Send invitation**. Laisser les inscriptions ouvertes permettrait à
+n'importe qui de s'en créer un — et de tenter d'écrire.
 
 ### 3. Verser les données de départ
 
@@ -462,8 +467,11 @@ publié, et c'est normal. Ce qui protège les données, ce sont les règles RLS.
 ### Ce que ça change pour la famille
 
 Le responsable saisit un mouvement depuis son téléphone, **tout le monde le voit
-au chargement suivant**. Et les données ne sont plus nulle part ailleurs que dans
-la base : ni dans le dépôt, ni dans la page publiée.
+au chargement suivant** — sans rien installer, sans compte, sans mot de passe. Il
+suffit d'ouvrir le lien.
+
+Seul l'écran `#/admin` demande à se connecter, et il n'accepte que les comptes
+marqués `is_admin`.
 
 ## Mise en page selon l'écran
 

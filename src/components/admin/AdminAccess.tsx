@@ -1,20 +1,28 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
 import { isSupabaseConfigured } from '../../config/supabase';
 import { fetchIsAdmin } from '../../services/auth';
+import { AuthGate } from '../AuthGate';
 import { AdminGate, LockIcon } from './AdminGate';
 
 /**
  * Qui a le droit d'ouvrir l'espace de saisie.
  *
+ * Consulter la caisse ne demande rien : le lien suffit. C'est ici, et ici
+ * seulement, qu'on demande à savoir à qui on a affaire.
+ *
  * Sans Supabase : le mot de passe vérifié dans le navigateur, faute de mieux.
- * Avec Supabase : la question est tranchée par la base (`app_users.is_admin`),
- * et les règles RLS refuseraient de toute façon l'écriture à quelqu'un d'autre.
- * L'écran ne fait donc que s'épargner des boutons voués à échouer.
+ * Avec Supabase : se connecter, puis la base tranche (`app_users.is_admin`).
+ * Les règles RLS refuseraient de toute façon l'écriture à quelqu'un d'autre —
+ * l'écran ne fait que s'épargner des boutons voués à échouer.
  */
 export function AdminAccess({ children }: PropsWithChildren) {
   if (!isSupabaseConfigured()) return <AdminGate>{children}</AdminGate>;
 
-  return <SupabaseAdminAccess>{children}</SupabaseAdminAccess>;
+  return (
+    <AuthGate>
+      <SupabaseAdminAccess>{children}</SupabaseAdminAccess>
+    </AuthGate>
+  );
 }
 
 function SupabaseAdminAccess({ children }: PropsWithChildren) {

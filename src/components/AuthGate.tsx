@@ -3,10 +3,11 @@ import { getSession, onAuthChange, sendMagicLink } from '../services/auth';
 import { LockIcon } from './admin/AdminGate';
 
 /**
- * Demande la connexion avant d'afficher la caisse.
+ * Demande la connexion avant d'ouvrir l'espace de saisie.
  *
- * Chacun a son compte, et c'est la base qui refuse de répondre à qui n'est pas
- * connecté : rien à cacher dans la page, rien à déchiffrer côté navigateur.
+ * La caisse, elle, se consulte sans compte. Seuls les responsables en ont un,
+ * et il leur est créé sur invitation : le formulaire ci-dessous n'inscrit
+ * personne, il envoie un lien à une adresse déjà connue.
  */
 export function AuthGate({ children }: PropsWithChildren) {
   const [state, setState] = useState<'checking' | 'out' | 'in'>('checking');
@@ -28,7 +29,7 @@ export function AuthGate({ children }: PropsWithChildren) {
     });
   }, []);
 
-  if (state === 'checking') return <div className="status-message">Connexion…</div>;
+  if (state === 'checking') return <div className="status-message">Vérification…</div>;
   if (state === 'in') return <>{children}</>;
 
   async function handleSubmit(event: React.FormEvent) {
@@ -52,7 +53,7 @@ export function AuthGate({ children }: PropsWithChildren) {
           <LockIcon />
         </span>
 
-        <h1 className="gate__title">Caisse Familiale Andamboly</h1>
+        <h1 className="gate__title">Espace admin protégé</h1>
 
         {sent ? (
           <p className="gate__text">
@@ -62,8 +63,8 @@ export function AuthGate({ children }: PropsWithChildren) {
         ) : (
           <>
             <p className="gate__text">
-              Entre l’adresse e-mail que le responsable de la caisse a inscrite. Tu
-              recevras un lien de connexion, sans mot de passe à retenir.
+              Seul le responsable de la caisse saisit les mouvements. Entre ton adresse
+              e-mail : tu recevras un lien de connexion, sans mot de passe à retenir.
             </p>
 
             <form className="gate__form" onSubmit={handleSubmit}>
@@ -101,6 +102,10 @@ export function AuthGate({ children }: PropsWithChildren) {
             {error}
           </p>
         )}
+
+        <a className="gate__back" href="#/">
+          ← Retour au tableau de bord
+        </a>
       </section>
     </div>
   );
