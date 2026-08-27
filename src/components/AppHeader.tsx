@@ -1,7 +1,7 @@
 import { FUND_SHORT_NAME, FUND_TAGLINE } from '../config/fund';
 import { formatLongDate } from '../utils/format';
 import type { Route } from '../utils/route';
-import { LockIcon } from './admin/AdminGate';
+import { LockIcon } from './LockIcon';
 
 interface AppHeaderProps {
   today: Date;

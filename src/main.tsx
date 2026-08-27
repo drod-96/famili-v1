@@ -1,6 +1,7 @@
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './app/App';
+import { FamilyGate } from './components/FamilyGate';
 import './styles/tokens.css';
 import './styles/global.css';
 import './styles/layout.css';
@@ -9,12 +10,14 @@ import './styles/fund.css';
 import './styles/admin.css';
 
 /*
- * Le tableau de bord s'ouvre sans rien demander : la famille reçoit un lien,
- * clique, et voit la caisse. Seul l'espace de saisie demande à se connecter
- * (voir AdminAccess) — et c'est la base qui tranche, pas l'écran.
+ * Un mot de passe unique ouvre la caisse (FamilyGate), et l'espace de saisie en
+ * demande un second, personnel (voir AdminAccess). Les deux sont vérifiés par
+ * Supabase, jamais ici : sans le jeton qu'il délivre, la base ne répond pas.
  */
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
-    <App />
+    <FamilyGate>
+      <App />
+    </FamilyGate>
   </StrictMode>,
 );

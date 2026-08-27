@@ -167,36 +167,30 @@ Le principe est simple :
 Le formulaire montre l'effet avant d'enregistrer : ce que vaudront une cotisation
 et le solde au taux saisi.
 
-### Mot de passe
+### Mots de passe
 
-**Ce mot de passe ne sert qu'en mode local.** Dès que Supabase est branché, le
-droit de saisir vient de la base (`app_users.is_admin`) et cet écran disparaît.
+Il y en a deux, et **aucun n'est vérifié dans le navigateur** : les deux passent
+par Supabase, qui délivre un jeton. Sans ce jeton, la base ne répond pas — pas
+même à qui interroge l'API directement, sans jamais charger la page.
 
-Le mot de passe par défaut est **`andamboly`**. L'accès reste ouvert jusqu'à la
-fermeture de l'onglet.
+| | Qui | Ce que ça ouvre |
+| --- | --- | --- |
+| **Mot de passe famille** | tout le monde, partagé | consulter la caisse |
+| **Mot de passe responsable** | un compte par responsable | saisir les mouvements |
 
-Pour le changer, générer l'empreinte du nouveau mot de passe :
+Le premier est demandé à l'ouverture du lien, une seule fois par appareil. Le
+second se demande sur `#/admin` : on y choisit son **nom** dans une liste, pas
+une adresse e-mail — la liste est celle des membres portant `isAdmin: true`, ceux
+signalés « responsable » sous leur nom dans la colonne de gauche.
 
-```bash
-echo -n "mon-nouveau-mot-de-passe" | sha256sum
-```
+Les deux se changent depuis le tableau de bord Supabase (**Authentication →
+Users**), sans toucher au code ni republier le site. Voir
+[Brancher Supabase](#brancher-supabase).
 
-puis coller le résultat dans `ADMIN_PASSWORD_SHA256`
-([`src/config/admin.ts`](src/config/admin.ts)). Le mot de passe lui-même n'est
-jamais écrit dans le code.
-
-Le membre responsable de la caisse porte `isAdmin: true` dans les données ; il est
-signalé « responsable » sous son nom dans la liste de gauche.
-
-> **Attention — tant que Supabase n'est pas branché**, deux limites :
->
-> 1. Les saisies restent dans le navigateur (`localStorage`) de l'appareil qui
->    les fait ; elles ne sont pas partagées entre téléphones.
-> 2. Le mot de passe est vérifié **dans le navigateur**. Il empêche l'accès
->    accidentel, mais quelqu'un qui inspecte le code du site le contourne.
->
-> Le code Supabase est écrit et règle les deux : il ne manque que le projet et
-> ses deux variables. Voir [Brancher Supabase](#brancher-supabase).
+> **Sans Supabase**, les données sont celles du navigateur (`localStorage`), sur
+> une caisse vide : il n'y a rien à protéger, et les deux écrans s'effacent.
+> C'est le mode qui permet de lancer `npm run dev` sans compte, pas un mode de
+> consultation.
 
 ## Les membres
 
@@ -353,7 +347,7 @@ src/
 ├── config/
 │   ├── fund.ts                  # nom, cotisation, date de départ, taux €, annonce
 │   ├── supabase.ts              # URL et clé anon, lues dans l'environnement
-│   └── admin.ts                 # empreinte du mot de passe admin (mode local)
+│   └── accounts.ts              # comptes Supabase : famille, et un par responsable
 ├── components/
 │   ├── ActivityCard.tsx         # « Naina a payé → +60 000 Ar (+6 mois) »
 │   │                            #   « Tiana a participé → +130 000 Ar · Ponctuel »
@@ -365,7 +359,8 @@ src/
 │   ├── MembersSidebar.tsx       # liste de gauche, triée alphabétiquement
 │   ├── MemberAvatar.tsx
 │   ├── MemberName.tsx           # titre gris minuscule + prénom et nom
-│   ├── AuthGate.tsx             # connexion par e-mail (mode Supabase)
+│   ├── FamilyGate.tsx           # mot de passe famille : ouvre la caisse
+│   ├── AuthGate.tsx             # nom + mot de passe : ouvre la saisie
 │   ├── PaidMonthsCard.tsx       # mois payés du membre sélectionné
 │   ├── TopPayersCard.tsx        # classement cotisations + ponctuel
 │   ├── StatusPill.tsx
@@ -385,8 +380,8 @@ variables : **dès qu'elles sont définies, l'application bascule toute seule.**
 | --- | --- | --- |
 | Données | `localStorage`, **propres à chaque appareil** | une base, **partagée par tous** |
 | Contenu au départ | une caisse vide | les tables, remplies par `seed:supabase` |
-| Consulter | ouvert | **ouvert** : le lien suffit, aucun compte |
-| Droit d'écrire | mot de passe vérifié dans le navigateur | `app_users.is_admin`, vérifié par la base |
+| Consulter | ouvert | **mot de passe famille**, vérifié par Supabase |
+| Droit d'écrire | ouvert | **nom + mot de passe**, `app_users.is_admin` vérifié par la base |
 
 Le choix se fait dans [`src/services/repository.ts`](src/services/repository.ts) au
 démarrage. Les composants ne savent pas laquelle des deux ils utilisent.
@@ -403,22 +398,30 @@ la table des comptes `app_users`, et les règles **RLS** :
 - **lecture** : tout le monde, connecté ou non ;
 - **écriture** : les seuls comptes dont `is_admin` vaut `true`.
 
-> **La lecture est délibérément ouverte.** La famille reçoit un lien, l'ouvre, et
-> voit la caisse — sans compte, sans mot de passe. Le revers : la clé `anon` est
-> dans le code du site publié, donc n'importe qui peut interroger la base
-> directement. **Les noms et les montants sont de fait publics.** Si ce n'est pas
-> ce que tu veux, remplace `to anon, authenticated` par `to authenticated` dans
-> la migration et remets `AuthGate` autour de `<App />` dans `main.tsx`.
+> **Pourquoi la lecture demande un compte.** La clé `anon` est dans le code du
+> site publié : elle est lisible par n'importe qui. Tant que `anon` avait le
+> droit de lire, une seule commande `curl` suffisait à sortir tous les noms et
+> tous les montants — **sans jamais ouvrir la page**, donc sans jamais croiser le
+> moindre mot de passe. C'est pour ça que le mot de passe famille n'est pas
+> comparé dans le navigateur : il ouvre une vraie session Supabase, et c'est le
+> jeton de cette session, pas la clé publique, qui donne accès aux tables.
 
 ### 2. Fermer les inscriptions
 
 **Authentication → Sign In / Providers → Email**, et décocher **Allow new users
 to sign up**.
 
-Consulter la caisse ne demande aucun compte : les seuls comptes qui existent
-sont ceux des **responsables**, créés à la main dans **Authentication → Users →
-Add user → Send invitation**. Laisser les inscriptions ouvertes permettrait à
-n'importe qui de s'en créer un — et de tenter d'écrire.
+Tous les comptes se créent à la main, dans **Authentication → Users → Add user →
+Create new user**, en cochant **Auto Confirm User** : le compte partagé
+`famille@andamboly.fr`, puis un compte par responsable, dont l'adresse reprend
+l'identifiant de sa fiche membre (`naina@andamboly.fr`).
+
+Ces adresses ne reçoivent jamais rien et n'ont pas besoin d'exister : elles ne
+servent que de tuyauterie, personne ne les voit. La correspondance est faite par
+[`src/config/accounts.ts`](src/config/accounts.ts).
+
+Laisser les inscriptions ouvertes permettrait à n'importe qui de s'en créer un —
+et de lire la caisse.
 
 ### 3. Verser les données de départ
 
@@ -467,11 +470,11 @@ publié, et c'est normal. Ce qui protège les données, ce sont les règles RLS.
 ### Ce que ça change pour la famille
 
 Le responsable saisit un mouvement depuis son téléphone, **tout le monde le voit
-au chargement suivant** — sans rien installer, sans compte, sans mot de passe. Il
-suffit d'ouvrir le lien.
+au chargement suivant** — sans rien installer. Il suffit d'ouvrir le lien et
+d'entrer le mot de passe famille, une fois par appareil.
 
-Seul l'écran `#/admin` demande à se connecter, et il n'accepte que les comptes
-marqués `is_admin`.
+Seul l'écran `#/admin` en demande un second, personnel, et il n'accepte que les
+comptes marqués `is_admin`.
 
 ## Mise en page selon l'écran
 

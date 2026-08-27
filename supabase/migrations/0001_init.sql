@@ -6,10 +6,12 @@
 -- Principe : la caisse se consulte librement, seuls les responsables écrivent.
 -- Les montants sont TOUJOURS en ariary, entiers.
 --
--- ⚠ La lecture est ouverte à `anon`, le rôle de la clé publique du site. Comme
--- cette clé est dans le code de la page publiée, les noms et les montants sont
--- de fait publics : n'importe qui peut interroger la base sans compte. C'est un
--- choix assumé pour que la famille n'ait qu'un lien à ouvrir.
+-- La lecture demande un compte. Le rôle `anon` — celui de la clé publique du
+-- site — ne peut rien lire : sans jeton, la base ne répond pas, y compris à qui
+-- interroge l'API directement sans passer par la page.
+--
+-- La famille partage un seul compte, « famille », dont le mot de passe est la
+-- seule chose à connaître. Les responsables ont le leur, marqué `is_admin`.
 -- ═══════════════════════════════════════════════════════════════════════════
 
 -- ── Qui saisit dans l'application ──────────────────────────────────────────
@@ -138,8 +140,10 @@ declare
   target text;
 begin
   foreach target in array array['members', 'contributions', 'expenses', 'eur_rates'] loop
-    -- Lecture pour tous : c'est ce qui permet d'ouvrir la caisse sans compte.
-    execute format('grant select on public.%I to anon, authenticated', target);
+    -- Lecture réservée aux comptes connectés. Le `revoke` compte autant que le
+    -- `grant` : il retire le droit d'une version précédente, où `anon` lisait.
+    execute format('revoke all on public.%I from anon', target);
+    execute format('grant select on public.%I to authenticated', target);
 
     -- Écriture ouverte aux comptes connectés *au sens Postgres* seulement :
     -- la règle « écriture responsable » exige ensuite `is_admin()`.
@@ -158,7 +162,7 @@ grant all on all tables in schema public to service_role;
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Row Level Security
 --
--- Lecture : tout le monde, connecté ou non. Écriture : les responsables seuls.
+-- Lecture : tout compte connecté. Écriture : les responsables seuls.
 --
 -- `app_users` fait exception : chacun n'y voit que sa propre ligne, et sans
 -- compte on n'y voit rien. La liste des responsables ne se parcourt pas.
@@ -182,13 +186,13 @@ declare
   target text;
 begin
   foreach target in array array['members', 'contributions', 'expenses', 'eur_rates'] loop
-    -- Ancien nom de la règle, du temps où la lecture demandait un compte.
-    execute format('drop policy if exists "%1$s: lecture connectée" on public.%1$I', target);
-
+    -- Ancien nom, du temps où le lien seul suffisait à tout voir.
     execute format('drop policy if exists "%1$s: lecture ouverte" on public.%1$I', target);
+
+    execute format('drop policy if exists "%1$s: lecture connectée" on public.%1$I', target);
     execute format(
-      'create policy "%1$s: lecture ouverte" on public.%1$I
-         for select to anon, authenticated using (true)', target);
+      'create policy "%1$s: lecture connectée" on public.%1$I
+         for select to authenticated using (true)', target);
 
     execute format('drop policy if exists "%1$s: écriture responsable" on public.%1$I', target);
     execute format(

@@ -1,48 +1,78 @@
 import { useEffect, useState, type PropsWithChildren } from 'react';
-import { getSession, onAuthChange, sendMagicLink } from '../services/auth';
-import { LockIcon } from './admin/AdminGate';
+import {
+  fetchAdminMembers,
+  getSession,
+  isFamilySession,
+  onAuthChange,
+  signInAsMember,
+} from '../services/auth';
+import { LockIcon } from './LockIcon';
 
 /**
- * Demande la connexion avant d'ouvrir l'espace de saisie.
+ * Demande à savoir *qui* saisit, avant d'ouvrir l'espace de saisie.
  *
- * La caisse, elle, se consulte sans compte. Seuls les responsables en ont un,
- * et il leur est créé sur invitation : le formulaire ci-dessous n'inscrit
- * personne, il envoie un lien à une adresse déjà connue.
+ * À ce stade la caisse est déjà ouverte : on est connecté avec le compte
+ * partagé de la famille, qui ne sait que lire. Se déclarer responsable
+ * remplace cette session par la sienne, et c'est elle que la base regardera.
+ *
+ * Le nom se choisit dans une liste — celle des membres marqués responsables.
+ * Personne n'a d'adresse à retenir : elle se déduit du membre choisi.
  */
 export function AuthGate({ children }: PropsWithChildren) {
-  const [state, setState] = useState<'checking' | 'out' | 'in'>('checking');
-  const [email, setEmail] = useState('');
-  const [sent, setSent] = useState(false);
-  const [error, setError] = useState('');
-  const [sending, setSending] = useState(false);
+  const [needsSignIn, setNeedsSignIn] = useState<boolean | null>(null);
 
   useEffect(() => {
     let active = true;
 
     void getSession().then((session) => {
-      if (active) setState(session ? 'in' : 'out');
+      if (active) setNeedsSignIn(isFamilySession(session) || !session);
     });
 
-    // Le retour du lien magique arrive par cet événement, pas par un rechargement.
     return onAuthChange((session) => {
-      if (active) setState(session ? 'in' : 'out');
+      if (active) setNeedsSignIn(isFamilySession(session) || !session);
     });
   }, []);
 
-  if (state === 'checking') return <div className="status-message">Vérification…</div>;
-  if (state === 'in') return <>{children}</>;
+  if (needsSignIn === null) return <div className="status-message">Vérification…</div>;
+  if (!needsSignIn) return <>{children}</>;
+
+  return <MemberSignIn />;
+}
+
+function MemberSignIn() {
+  const [members, setMembers] = useState<{ id: string; name: string }[] | null>(null);
+  const [memberId, setMemberId] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+  const [checking, setChecking] = useState(false);
+
+  useEffect(() => {
+    let active = true;
+    void fetchAdminMembers().then((list) => {
+      if (!active) return;
+      setMembers(list);
+      if (list.length === 1) setMemberId(list[0].id);
+    });
+
+    return () => {
+      active = false;
+    };
+  }, []);
 
   async function handleSubmit(event: React.FormEvent) {
     event.preventDefault();
-    if (sending || !email.trim()) return;
+    if (checking || !memberId || !password) return;
 
-    setSending(true);
+    setChecking(true);
     try {
-      const message = await sendMagicLink(email.trim());
-      if (message) setError(message);
-      else setSent(true);
+      const message = await signInAsMember(memberId, password);
+      if (message) {
+        setError(message);
+        setPassword('');
+      }
+      // Si c'est passé, `onAuthChange` bascule l'écran.
     } finally {
-      setSending(false);
+      setChecking(false);
     }
   }
 
@@ -53,48 +83,66 @@ export function AuthGate({ children }: PropsWithChildren) {
           <LockIcon />
         </span>
 
-        <h1 className="gate__title">Espace admin protégé</h1>
+        <h1 className="gate__title">Espace responsable</h1>
+        <p className="gate__text">
+          Choisis ton nom et entre ton mot de passe. Il est personnel : ce n’est pas
+          celui de la famille.
+        </p>
 
-        {sent ? (
-          <p className="gate__text">
-            Un lien de connexion vient de partir vers <strong>{email}</strong>. Ouvre-le
-            depuis ce téléphone : il te ramènera ici, connecté.
+        {members !== null && members.length === 0 ? (
+          <p className="gate__error" role="alert">
+            Aucun membre n’est marqué responsable. Il faut le faire dans Supabase,
+            table <code>members</code>, colonne <code>is_admin</code>.
           </p>
         ) : (
-          <>
-            <p className="gate__text">
-              Seul le responsable de la caisse saisit les mouvements. Entre ton adresse
-              e-mail : tu recevras un lien de connexion, sans mot de passe à retenir.
-            </p>
+          <form className="gate__form" onSubmit={handleSubmit}>
+            <label className="visually-hidden" htmlFor="admin-member">
+              Nom
+            </label>
+            <select
+              id="admin-member"
+              className="input"
+              value={memberId}
+              onChange={(event) => {
+                setMemberId(event.target.value);
+                setError('');
+              }}
+              disabled={members === null}
+            >
+              <option value="" disabled>
+                {members === null ? 'Chargement…' : 'Choisis ton nom'}
+              </option>
+              {(members ?? []).map((member) => (
+                <option key={member.id} value={member.id}>
+                  {member.name}
+                </option>
+              ))}
+            </select>
 
-            <form className="gate__form" onSubmit={handleSubmit}>
-              <label className="visually-hidden" htmlFor="auth-email">
-                Adresse e-mail
-              </label>
-              <input
-                id="auth-email"
-                className="input"
-                type="email"
-                autoComplete="email"
-                placeholder="prenom@exemple.mg"
-                value={email}
-                onChange={(event) => {
-                  setEmail(event.target.value);
-                  setError('');
-                }}
-                required
-                autoFocus
-              />
+            <label className="visually-hidden" htmlFor="admin-password">
+              Mot de passe
+            </label>
+            <input
+              id="admin-password"
+              className="input"
+              type="password"
+              autoComplete="current-password"
+              placeholder="Mot de passe"
+              value={password}
+              onChange={(event) => {
+                setPassword(event.target.value);
+                setError('');
+              }}
+            />
 
-              <button
-                type="submit"
-                className="button button--member"
-                disabled={!email.trim() || sending}
-              >
-                {sending ? 'Envoi…' : 'Recevoir le lien'}
-              </button>
-            </form>
-          </>
+            <button
+              type="submit"
+              className="button button--member"
+              disabled={!memberId || !password || checking}
+            >
+              {checking ? 'Vérification…' : 'Entrer'}
+            </button>
+          </form>
         )}
 
         {error && (

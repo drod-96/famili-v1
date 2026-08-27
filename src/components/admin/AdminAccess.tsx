@@ -2,7 +2,7 @@ import { useEffect, useState, type PropsWithChildren } from 'react';
 import { isSupabaseConfigured } from '../../config/supabase';
 import { fetchIsAdmin } from '../../services/auth';
 import { AuthGate } from '../AuthGate';
-import { AdminGate, LockIcon } from './AdminGate';
+import { LockIcon } from '../LockIcon';
 
 /**
  * Qui a le droit d'ouvrir l'espace de saisie.
@@ -10,13 +10,14 @@ import { AdminGate, LockIcon } from './AdminGate';
  * Consulter la caisse ne demande rien : le lien suffit. C'est ici, et ici
  * seulement, qu'on demande à savoir à qui on a affaire.
  *
- * Sans Supabase : le mot de passe vérifié dans le navigateur, faute de mieux.
- * Avec Supabase : se connecter, puis la base tranche (`app_users.is_admin`).
+ * Sans Supabase, les données sont celles du navigateur : il n'y a rien à
+ * protéger, l'espace s'ouvre. Avec Supabase, on se connecte sous son nom, puis
+ * la base tranche (`app_users.is_admin`).
  * Les règles RLS refuseraient de toute façon l'écriture à quelqu'un d'autre —
  * l'écran ne fait que s'épargner des boutons voués à échouer.
  */
 export function AdminAccess({ children }: PropsWithChildren) {
-  if (!isSupabaseConfigured()) return <AdminGate>{children}</AdminGate>;
+  if (!isSupabaseConfigured()) return <>{children}</>;
 
   return (
     <AuthGate>
@@ -51,8 +52,8 @@ function SupabaseAdminAccess({ children }: PropsWithChildren) {
 
         <h1 className="gate__title">Espace réservé au responsable</h1>
         <p className="gate__text">
-          Ton compte peut consulter la caisse, mais pas y saisir de mouvements. Le
-          responsable de la caisse peut t’ouvrir ce droit.
+          Ce compte peut consulter la caisse, mais pas y saisir de mouvements. Un
+          responsable peut ouvrir ce droit depuis Supabase.
         </p>
 
         <a className="gate__back" href="#/">
