@@ -119,6 +119,43 @@ create table if not exists public.eur_rates (
 create index if not exists eur_rates_recent_idx on public.eur_rates (created_at desc);
 
 -- ═══════════════════════════════════════════════════════════════════════════
+-- Droits Postgres
+--
+-- Deux verrous se superposent, et il faut passer les deux : le `grant` dit
+-- quels rôles ont le droit de toucher la table, la règle RLS décide ensuite
+-- quelles lignes. Un `grant` manquant se voit à l'erreur « permission denied
+-- for table … » — une règle RLS, elle, parle de « row-level security policy ».
+--
+-- Les projets Supabase récents n'accordent plus ces droits d'office aux
+-- tables neuves : on les pose donc à la main, sinon même la clé service role
+-- se fait refuser.
+-- ═══════════════════════════════════════════════════════════════════════════
+
+grant usage on schema public to anon, authenticated, service_role;
+
+do $$
+declare
+  target text;
+begin
+  foreach target in array array['members', 'contributions', 'expenses', 'eur_rates'] loop
+    -- Lecture pour tous : c'est ce qui permet d'ouvrir la caisse sans compte.
+    execute format('grant select on public.%I to anon, authenticated', target);
+
+    -- Écriture ouverte aux comptes connectés *au sens Postgres* seulement :
+    -- la règle « écriture responsable » exige ensuite `is_admin()`.
+    execute format('grant insert, update, delete on public.%I to authenticated', target);
+  end loop;
+end;
+$$;
+
+-- Chacun ne lit que sa propre ligne, la règle RLS s'en charge.
+grant select on public.app_users to authenticated;
+
+-- La clé service role sert aux scripts d'administration (`seed:supabase`),
+-- jamais au navigateur. Elle contourne RLS, mais pas les droits Postgres.
+grant all on all tables in schema public to service_role;
+
+-- ═══════════════════════════════════════════════════════════════════════════
 -- Row Level Security
 --
 -- Lecture : tout le monde, connecté ou non. Écriture : les responsables seuls.
