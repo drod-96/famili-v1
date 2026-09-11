@@ -16,9 +16,9 @@ const ACCOUNT_DOMAIN = 'andamboly.fr';
 /**
  * Le compte partagé, celui du mot de passe unique.
  *
- * Il ne donne que la lecture : `app_users.is_admin` reste `false` pour lui, et
- * les règles RLS refusent donc toute écriture — même à quelqu'un qui
- * bricolerait la page.
+ * Il ne donne que la lecture : la fonction `is_admin()` de la base l'écarte
+ * d'office, et les règles RLS refusent donc toute écriture — même à quelqu'un
+ * qui bricolerait la page.
  */
 export const FAMILY_ACCOUNT_ID = 'famille';
 
@@ -30,6 +30,9 @@ export function accountEmail(accountId: string): string {
 /**
  * Le compte d'un responsable reprend l'identifiant de sa fiche membre
  * (« naina »), ce qui évite d'avoir à tenir une correspondance à part.
+ *
+ * La base fait la même déduction dans `is_admin()` : changer le domaine ici
+ * demande de le changer aussi dans supabase/migrations/0001_init.sql.
  */
 export const memberEmail = accountEmail;
 

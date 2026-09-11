@@ -12,7 +12,7 @@ import { LockIcon } from '../LockIcon';
  *
  * Sans Supabase, les données sont celles du navigateur : il n'y a rien à
  * protéger, l'espace s'ouvre. Avec Supabase, on se connecte sous son nom, puis
- * la base tranche (`app_users.is_admin`).
+ * la base tranche (`members.is_admin`, lu par la fonction `is_admin()`).
  * Les règles RLS refuseraient de toute façon l'écriture à quelqu'un d'autre —
  * l'écran ne fait que s'épargner des boutons voués à échouer.
  */

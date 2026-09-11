@@ -11,57 +11,10 @@
 -- interroge l'API directement sans passer par la page.
 --
 -- La famille partage un seul compte, « famille », dont le mot de passe est la
--- seule chose à connaître. Les responsables ont le leur, marqué `is_admin`.
+-- seule chose à connaître. Les responsables ont le leur : l'adresse
+-- `<id du membre>@andamboly.fr`, et c'est `members.is_admin` qui leur donne
+-- le droit d'écrire.
 -- ═══════════════════════════════════════════════════════════════════════════
-
--- ── Qui saisit dans l'application ──────────────────────────────────────────
--- Une ligne par compte, créée automatiquement à l'invitation.
--- Seuls les responsables ont un compte : consulter la caisse n'en demande pas.
--- `is_admin` se met à la main : c'est la seule chose qui donne le droit d'écrire.
-create table if not exists public.app_users (
-  user_id    uuid primary key references auth.users (id) on delete cascade,
-  email      text,
-  is_admin   boolean not null default false,
-  created_at timestamptz not null default now()
-);
-
-create or replace function public.handle_new_user()
-returns trigger
-language plpgsql
-security definer
-set search_path = public
-as $$
-begin
-  insert into public.app_users (user_id, email)
-  values (new.id, new.email)
-  on conflict (user_id) do nothing;
-  return new;
-end;
-$$;
-
-drop trigger if exists on_auth_user_created on auth.users;
-create trigger on_auth_user_created
-  after insert on auth.users
-  for each row execute function public.handle_new_user();
-
-/*
- * Utilisée par toutes les règles d'écriture.
- * `security definer` pour qu'elle puisse lire app_users sans que l'appelant
- * ait besoin d'un droit dessus ; `stable` pour qu'elle ne soit évaluée
- * qu'une fois par requête.
- */
-create or replace function public.is_admin()
-returns boolean
-language sql
-security definer
-stable
-set search_path = public
-as $$
-  select coalesce(
-    (select is_admin from public.app_users where user_id = auth.uid()),
-    false
-  );
-$$;
 
 -- ── Les membres de la caisse ───────────────────────────────────────────────
 -- L'identifiant reste un texte lisible (« naina ») : c'est lui que pointent
@@ -120,6 +73,43 @@ create table if not exists public.eur_rates (
 
 create index if not exists eur_rates_recent_idx on public.eur_rates (created_at desc);
 
+-- ── Qui a le droit d'écrire ────────────────────────────────────────────────
+/*
+ * Utilisée par toutes les règles d'écriture, et par l'écran de saisie.
+ *
+ * Un compte responsable reprend l'identifiant de sa fiche membre
+ * (`naina@andamboly.fr` ↔ `naina`, voir src/config/accounts.ts) : c'est donc
+ * la colonne `members.is_admin` qui fait foi, et rien d'autre.
+ * Le compte partagé `famille` est écarté d'office, même si un membre venait à
+ * porter cet identifiant.
+ *
+ * `security definer` pour qu'elle lise `members` quels que soient les droits
+ * de l'appelant ; `stable` pour qu'elle ne soit évaluée qu'une fois par requête.
+ */
+create or replace function public.is_admin()
+returns boolean
+language sql
+security definer
+stable
+set search_path = public
+as $$
+  select coalesce(
+    (select is_admin from public.members
+      where id <> 'famille'
+        and id || '@andamboly.fr' = auth.jwt() ->> 'email'),
+    false
+  );
+$$;
+
+revoke all on function public.is_admin() from public, anon;
+grant execute on function public.is_admin() to authenticated;
+
+-- Ancienne table des comptes : le droit d'écrire se lisait dans une colonne
+-- `app_users.is_admin`, en double de `members.is_admin`. Elle ne sert plus.
+drop trigger if exists on_auth_user_created on auth.users;
+drop function if exists public.handle_new_user();
+drop table if exists public.app_users;
+
 -- ═══════════════════════════════════════════════════════════════════════════
 -- Droits Postgres
 --
@@ -152,9 +142,6 @@ begin
 end;
 $$;
 
--- Chacun ne lit que sa propre ligne, la règle RLS s'en charge.
-grant select on public.app_users to authenticated;
-
 -- La clé service role sert aux scripts d'administration (`seed:supabase`),
 -- jamais au navigateur. Elle contourne RLS, mais pas les droits Postgres.
 grant all on all tables in schema public to service_role;
@@ -163,23 +150,12 @@ grant all on all tables in schema public to service_role;
 -- Row Level Security
 --
 -- Lecture : tout compte connecté. Écriture : les responsables seuls.
---
--- `app_users` fait exception : chacun n'y voit que sa propre ligne, et sans
--- compte on n'y voit rien. La liste des responsables ne se parcourt pas.
 -- ═══════════════════════════════════════════════════════════════════════════
 
-alter table public.app_users     enable row level security;
 alter table public.members       enable row level security;
 alter table public.contributions enable row level security;
 alter table public.expenses      enable row level security;
 alter table public.eur_rates     enable row level security;
-
--- Chacun voit sa propre ligne, et rien d'autre.
-drop policy if exists "app_users: se voir soi-même" on public.app_users;
-create policy "app_users: se voir soi-même"
-  on public.app_users for select
-  to authenticated
-  using (user_id = auth.uid());
 
 do $$
 declare

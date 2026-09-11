@@ -381,7 +381,7 @@ variables : **dès qu'elles sont définies, l'application bascule toute seule.**
 | Données | `localStorage`, **propres à chaque appareil** | une base, **partagée par tous** |
 | Contenu au départ | une caisse vide | les tables, remplies par `seed:supabase` |
 | Consulter | ouvert | **mot de passe famille**, vérifié par Supabase |
-| Droit d'écrire | ouvert | **nom + mot de passe**, `app_users.is_admin` vérifié par la base |
+| Droit d'écrire | ouvert | **nom + mot de passe**, `members.is_admin` vérifié par la base |
 
 Le choix se fait dans [`src/services/repository.ts`](src/services/repository.ts) au
 démarrage. Les composants ne savent pas laquelle des deux ils utilisent.
@@ -392,11 +392,14 @@ Sur [supabase.com](https://supabase.com), créer un projet (l'offre gratuite
 suffit largement pour une caisse familiale). Puis, dans **SQL Editor**, coller et
 exécuter [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql).
 
-Il crée les quatre tables — `members`, `contributions`, `expenses`, `eur_rates` —,
-la table des comptes `app_users`, et les règles **RLS** :
+Il crée les quatre tables — `members`, `contributions`, `expenses`, `eur_rates` —
+et les règles **RLS** :
 
-- **lecture** : tout le monde, connecté ou non ;
-- **écriture** : les seuls comptes dont `is_admin` vaut `true`.
+- **lecture** : tout compte connecté ;
+- **écriture** : les seuls comptes d'un membre dont `is_admin` vaut `true`.
+
+Le fichier se relance sans risque : c'est aussi comme ça qu'on applique une
+version plus récente sur une base existante.
 
 > **Pourquoi la lecture demande un compte.** La clé `anon` est dans le code du
 > site publié : elle est lisible par n'importe qui. Tant que `anon` avait le
@@ -439,17 +442,23 @@ relancer créerait des doublons.
 > *Project Settings → API*, et ne doit jamais entrer dans le dépôt ni dans le
 > paquet publié.
 
-### 4. Se donner le droit d'écrire
+### 4. Nommer les responsables
 
-Après la première connexion, dans **SQL Editor** :
+Il faut deux choses, et elles se font toutes les deux dans le tableau de bord :
 
-```sql
-update public.app_users set is_admin = true where email = 'ton@adresse';
-```
+1. **Table Editor → `members`** : cocher `is_admin` sur la fiche du responsable.
+   Son nom apparaît alors dans la liste de `#/admin`, et « responsable » s'affiche
+   sous son nom dans la colonne de gauche.
+2. **Authentication → Users → Add user → Create new user** : l'adresse
+   `<id>@andamboly.fr`, où `<id>` est la colonne `id` de sa fiche (`naina`, pas
+   « Naina Rabe »), **le mot de passe de son choix**, et **Auto Confirm User**
+   coché.
 
-C'est la seule chose qui ouvre l'espace de saisie. Elle se donne et se retire à
-la main, table `app_users` — le responsable de la caisse n'a pas besoin d'être
-celui qui gère le dépôt.
+Il n'y a **pas de mot de passe par défaut** : c'est celui qu'on tape à l'étape 2.
+Tant que le compte n'existe pas, la connexion répond « Mot de passe incorrect ».
+
+Renommer quelqu'un ne change rien : seul l'`id` compte, et il ne bouge pas.
+Décocher `is_admin` retire le droit d'écrire aussitôt, compte ou pas.
 
 ### 5. Raccorder l'application
 
@@ -474,7 +483,7 @@ au chargement suivant** — sans rien installer. Il suffit d'ouvrir le lien et
 d'entrer le mot de passe famille, une fois par appareil.
 
 Seul l'écran `#/admin` en demande un second, personnel, et il n'accepte que les
-comptes marqués `is_admin`.
+membres marqués `is_admin`.
 
 ## Mise en page selon l'écran
 

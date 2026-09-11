@@ -85,15 +85,17 @@ export function onAuthChange(listener: (session: Session | null) => void): () =>
 /**
  * Est-ce que ce compte a le droit d'écrire ?
  *
- * La réponse fait autorité côté base (règles RLS) : ici, elle sert seulement à
- * ne pas afficher un écran de saisie dont chaque bouton échouerait.
+ * Pose la question à la fonction `is_admin()` de la base, celle-là même que
+ * consultent les règles RLS : l'écran et la base ne peuvent pas diverger. Ici,
+ * la réponse sert seulement à ne pas afficher un écran de saisie dont chaque
+ * bouton échouerait.
  */
 export async function fetchIsAdmin(): Promise<boolean> {
   const client = getSupabase();
   if (!client) return false;
 
-  const { data, error } = await client.from('app_users').select('is_admin').maybeSingle();
-  return !error && Boolean(data?.is_admin);
+  const { data, error } = await client.rpc('is_admin');
+  return !error && data === true;
 }
 
 /**

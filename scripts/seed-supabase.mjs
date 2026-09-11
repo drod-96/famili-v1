@@ -90,5 +90,6 @@ if (rates.length > 0) {
 }
 console.log(`${rates.length} taux`);
 
-console.log('\nDonnées versées. Pense à te donner le droit d’écrire :');
-console.log("  update public.app_users set is_admin = true where email = 'ton@adresse';");
+console.log('\nDonnées versées. Pour pouvoir écrire, un responsable a besoin :');
+console.log('  - de is_admin = true sur sa fiche, table members ;');
+console.log('  - d’un compte <id du membre>@andamboly.fr dans Authentication → Users.');
