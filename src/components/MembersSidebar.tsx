@@ -30,6 +30,13 @@ export function MembersSidebar({ members, summaries, selectedId, onSelect }: Mem
     [order, members, summaries],
   );
 
+  /*
+   * Les non-cotisants n'ont pas d'échéance : les mélanger aux autres ferait
+   * croire à un oubli. Ils gardent leur propre rangée, plus courte, en bas.
+   */
+  const cotizing = useMemo(() => listed.filter((member) => member.isCotizing !== false), [listed]);
+  const nonCotizing = useMemo(() => listed.filter((member) => member.isCotizing === false), [listed]);
+
   return (
     <aside className="sidebar" aria-label="Membres de la caisse">
       <div className="sidebar__head">
@@ -54,24 +61,44 @@ export function MembersSidebar({ members, summaries, selectedId, onSelect }: Mem
         ))}
       </div>
 
-      <nav className="sidebar__body">
-        {listed.length === 0 ? (
-          <p className="sidebar__empty">Aucun membre pour le moment.</p>
-        ) : (
-          <ul className="member-list">
-            {listed.map((member) => (
-              <li key={member.id}>
-                <MemberRow
-                  member={member}
-                  summary={summaries.get(member.id)}
-                  selected={selectedId === member.id}
-                  onSelect={onSelect}
-                />
-              </li>
-            ))}
-          </ul>
-        )}
-      </nav>
+      {listed.length === 0 ? (
+        <p className="sidebar__empty">Aucun membre pour le moment.</p>
+      ) : (
+        <div className="sidebar__body">
+          <nav className="sidebar__group sidebar__group--main" aria-label="Cotisants">
+            <ul className="member-list">
+              {cotizing.map((member) => (
+                <li key={member.id}>
+                  <MemberRow
+                    member={member}
+                    summary={summaries.get(member.id)}
+                    selected={selectedId === member.id}
+                    onSelect={onSelect}
+                  />
+                </li>
+              ))}
+            </ul>
+          </nav>
+
+          {nonCotizing.length > 0 && (
+            <nav className="sidebar__group sidebar__group--secondary" aria-label="Non cotisants">
+              <p className="sidebar__group-label">Non cotisants</p>
+              <ul className="member-list">
+                {nonCotizing.map((member) => (
+                  <li key={member.id}>
+                    <MemberRow
+                      member={member}
+                      summary={summaries.get(member.id)}
+                      selected={selectedId === member.id}
+                      onSelect={onSelect}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </nav>
+          )}
+        </div>
+      )}
     </aside>
   );
 }

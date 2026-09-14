@@ -65,12 +65,43 @@
   color: var(--color-accent-strong);
 }
 
+/*
+ * Deux rangées empilées, chacune avec son propre défilement : la rangée des
+ * cotisants (8 parts) domine celle des non-cotisants (1 part), qui reste
+ * courte même remplie.
+ */
 .sidebar__body {
-  display: grid;
-  gap: 0.15rem;
-  max-height: min(70vh, 640px);
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  height: min(70vh, 640px);
   padding: var(--space-3) var(--space-3) var(--space-4);
+}
+
+.sidebar__group {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.sidebar__group--main {
+  flex: 8 1 0%;
+}
+
+.sidebar__group--secondary {
+  flex: 1 1 0%;
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
+}
+
+.sidebar__group-label {
+  padding: 0 0.55rem var(--space-1);
+  color: var(--color-muted);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
 }
 
 /* ── Liste des membres ───────────────────────────────────── */
@@ -333,7 +364,12 @@
   }
 
   .sidebar__body {
-    max-height: none;
+    height: auto;
+  }
+
+  .sidebar__group {
+    flex: none;
+    overflow-y: visible;
   }
 }
 

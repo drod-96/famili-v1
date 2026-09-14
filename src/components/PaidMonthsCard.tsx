@@ -22,6 +22,10 @@ interface PaidMonthsCardProps {
 }
 
 export function PaidMonthsCard({ summary, currency, fundStarted }: PaidMonthsCardProps) {
+  if (summary.member.isCotizing === false) {
+    return <NonCotizingCard summary={summary} currency={currency} />;
+  }
+
   const late = summary.tone === 'late';
 
   return (
@@ -80,6 +84,51 @@ export function PaidMonthsCard({ summary, currency, fundStarted }: PaidMonthsCar
       </div>
 
       <p className="months-card__hint">{buildHint(summary, currency, fundStarted)}</p>
+    </Card>
+  );
+}
+
+interface NonCotizingCardProps {
+  summary: MemberSummary;
+  currency: DisplayCurrency;
+}
+
+/**
+ * Un non-cotisant n'a aucune échéance : ni grille de mois, ni retard, ni
+ * reste à verser. Juste ce qu'il a effectivement mis dans la caisse.
+ */
+function NonCotizingCard({ summary, currency }: NonCotizingCardProps) {
+  return (
+    <Card className="months-card">
+      <div className="months-card__head">
+        <div className="months-card__title">
+          <p className="eyebrow">Versements · {summary.year}</p>
+          <div className="months-card__member">
+            <MemberAvatar member={summary.member} size="xs" />
+            <MemberName member={summary.member} />
+          </div>
+        </div>
+
+        <StatusPill tone={summary.tone} label={summary.statusLabel} size="md" />
+      </div>
+
+      <dl className="months-card__meta">
+        <div>
+          <dt>Cotisations participées</dt>
+          <dd>{formatAmount(summary.duesPaidAr, currency)}</dd>
+        </div>
+
+        {summary.oneOffPaidAr > 0 && (
+          <div className="months-card__meta-soft">
+            <dt>Dont ponctuel</dt>
+            <dd>{formatAmount(summary.oneOffPaidAr, currency)}</dd>
+          </div>
+        )}
+      </dl>
+
+      <p className="months-card__hint">
+        Non soumis à la cotisation mensuelle : ce membre verse s'il le souhaite, sans échéance ni retard.
+      </p>
     </Card>
   );
 }
