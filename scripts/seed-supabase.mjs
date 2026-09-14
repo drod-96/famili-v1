@@ -42,6 +42,7 @@ const members = (seed.members ?? []).map((member) => ({
   color: member.color,
   avatar_url: member.avatarUrl ?? null,
   is_admin: member.isAdmin ?? false,
+  is_cotizing: member.isCotizing ?? true,
 }));
 
 fail('membres', (await client.from('members').upsert(members)).error);

@@ -13,6 +13,8 @@ export interface FamilyMember {
   avatarUrl?: string | null;
   /** Responsable de la caisse. */
   isAdmin?: boolean;
+  /** Soumis à la cotisation mensuelle. Vrai par défaut : la dispense se pose en base. */
+  isCotizing?: boolean;
 }
 
 /**

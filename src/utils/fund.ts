@@ -215,8 +215,15 @@ export function summarizeMember(
   const oneOffPaidAr = sum(paid.filter((contribution) => !isDue(contribution)).map((c) => c.amountAr));
   const totalPaidAr = duesPaidAr + oneOffPaidAr;
 
+  /*
+   * Un membre dispensé (`isCotizing === false`) n'est soumis à aucune
+   * échéance : pas de retard, pas de reste à payer. Il reste libre de verser
+   * — ce qu'il verse compte toujours comme des mois couverts.
+   */
+  const cotizing = member.isCotizing !== false;
+
   const currentIndex = currentPeriodIndex(today);
-  const monthsExpected = Math.max(0, currentIndex + 1);
+  const monthsExpected = cotizing ? Math.max(0, currentIndex + 1) : 0;
   const monthsCovered = monthsFromAmount(duesPaidAr);
   const fullMonthsCovered = Math.floor(monthsCovered);
 
@@ -226,6 +233,7 @@ export function summarizeMember(
 
     let status: MonthStatus;
     if (progress >= 1) status = 'paid';
+    else if (!cotizing) status = 'upcoming';
     else if (period.index < currentIndex) status = 'late';
     else if (period.index === currentIndex) status = 'due';
     else status = 'upcoming';
@@ -237,9 +245,9 @@ export function summarizeMember(
    * Le retard se compte depuis le démarrage de la caisse, pas depuis le premier
    * mois affiché : un mois impayé de l'année précédente reste un retard.
    */
-  const lateCount = Math.max(0, currentIndex - fullMonthsCovered);
+  const lateCount = cotizing ? Math.max(0, currentIndex - fullMonthsCovered) : 0;
   const aheadCount = Math.max(0, fullMonthsCovered - monthsExpected);
-  const remainingAr = Math.max(0, monthsExpected * MONTHLY_DUE_AR - duesPaidAr);
+  const remainingAr = cotizing ? Math.max(0, monthsExpected * MONTHLY_DUE_AR - duesPaidAr) : 0;
 
   // Tout ce qui est à couvrir d'ici décembre de l'année affichée.
   const lastIndex = periods.length > 0 ? periods[periods.length - 1].index : currentIndex;
@@ -265,6 +273,7 @@ export function summarizeMember(
     overflowMonths,
     ...describeStatus({
       currentIndex,
+      cotizing,
       lateCount,
       monthsCovered,
       remainingAr,
@@ -283,6 +292,7 @@ export function summarizeMember(
  */
 function describeStatus(input: {
   currentIndex: number;
+  cotizing: boolean;
   lateCount: number;
   monthsCovered: number;
   remainingAr: number;
@@ -291,7 +301,7 @@ function describeStatus(input: {
   overflowMonths: number;
   oneOffPaidAr: number;
 }): { tone: MemberTone; statusLabel: string } {
-  const { currentIndex, lateCount, monthsCovered, remainingAr, yearFullMonths, yearMonths } = input;
+  const { currentIndex, cotizing, lateCount, monthsCovered, remainingAr, yearFullMonths, yearMonths } = input;
 
   const paidOfYear = `${yearFullMonths} / ${yearMonths} mois payés`;
 
@@ -307,6 +317,11 @@ function describeStatus(input: {
     // Une participation ponctuelle n'est pas rien : ne pas dire « rien versé ».
     if (input.oneOffPaidAr > 0) return { tone: 'idle', statusLabel: 'Aucune cotisation' };
     return { tone: 'idle', statusLabel: 'Pas encore versé' };
+  }
+
+  // Dispensé et rien versé : ni retard, ni « à jour », juste dispensé.
+  if (!cotizing && monthsCovered === 0) {
+    return { tone: 'idle', statusLabel: 'Non cotisant' };
   }
 
   if (lateCount > 0) {

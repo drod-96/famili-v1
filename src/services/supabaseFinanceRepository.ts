@@ -33,6 +33,7 @@ interface MemberRow {
   color: string;
   avatar_url: string | null;
   is_admin: boolean;
+  is_cotizing: boolean;
 }
 
 interface ContributionRow {
@@ -165,6 +166,7 @@ function toMember(row: MemberRow): FamilyMember {
     color: row.color as MemberColor,
     avatarUrl: row.avatar_url,
     ...(row.is_admin ? { isAdmin: true } : {}),
+    ...(row.is_cotizing === false ? { isCotizing: false } : {}),
   };
 }
 
@@ -176,6 +178,7 @@ function fromMember(input: NewMember) {
     color: input.color,
     avatar_url: input.avatarUrl ?? null,
     is_admin: input.isAdmin ?? false,
+    is_cotizing: input.isCotizing ?? true,
   };
 }
 
